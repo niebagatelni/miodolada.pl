@@ -1,0 +1,85 @@
+<?php
+
+/**
+ * Shortcode: [rejestracja_firmowa]
+ * Formularz rejestracji firmowej zgodny z WooCommerce, z dodatkowymi polami
+ */
+
+
+
+function formularz_rejestracji_firmowej_shortcode() {
+    if (is_user_logged_in()) {
+        return '<p>' . __('Jesteś już zalogowany.', 'storefront-child') . '</p>';
+    }
+
+    ob_start();
+
+    wc_print_notices();
+
+    ?>
+    <form method="post" class="woocommerce-form woocommerce-form-register register" action="<?php echo esc_url(wc_get_page_permalink('myaccount')); ?>">
+
+        <?php do_action('woocommerce_register_form_start'); ?>
+
+        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+            <label for="reg_email"><?php esc_html_e('Adres e-mail', 'storefront-child'); ?> <span class="required">*</span></label>
+            <input type="email" name="email" id="reg_email" autocomplete="email" value="<?php echo (!empty($_POST['email'])) ? esc_attr(wp_unslash($_POST['email'])) : ''; ?>" required />
+        </p>
+
+        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+            <label for="reg_password"><?php esc_html_e('Hasło', 'storefront-child'); ?> <span class="required">*</span></label>
+            <input type="password" name="password" id="reg_password" autocomplete="new-password" required />
+        </p>
+<?php /*
+        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+            <label for="reg_billing_company"><?php esc_html_e('Nazwa firmy', 'storefront-child'); ?> <span class="required">*</span></label>
+            <input type="text" name="billing_company" id="reg_billing_company" value="<?php echo (!empty($_POST['billing_company'])) ? esc_attr($_POST['billing_company']) : ''; ?>" required />
+        </p>
+
+        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+            <label for="reg_billing_address_1"><?php esc_html_e('Adres 1', 'storefront-child'); ?> <span class="required">*</span></label>
+            <input type="text" name="billing_address_1" id="reg_billing_address_1" value="<?php echo (!empty($_POST['billing_address_1'])) ? esc_attr($_POST['billing_address_1']) : ''; ?>" required />
+        </p>
+
+        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+            <label for="reg_billing_address_2"><?php esc_html_e('Adres 2', 'storefront-child'); ?></label>
+            <input type="text" name="billing_address_2" id="reg_billing_address_2" value="<?php echo (!empty($_POST['billing_address_2'])) ? esc_attr($_POST['billing_address_2']) : ''; ?>" />
+        </p>
+
+        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+            <label for="reg_billing_phone"><?php esc_html_e('Telefon', 'storefront-child'); ?> <span class="required">*</span></label>
+            <input type="tel" name="billing_phone" id="reg_billing_phone" value="<?php echo (!empty($_POST['billing_phone'])) ? esc_attr($_POST['billing_phone']) : ''; ?>" required />
+        </p>
+
+        <!-- Twoje niestandardowe pola -->
+        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+            <label for="reg_rodzaj_dzialalnosci"><?php esc_html_e('Rodzaj działalności', 'storefront-child'); ?></label>
+            <input type="text" name="rodzaj_dzialalnosci" id="reg_rodzaj_dzialalnosci" value="<?php echo (!empty($_POST['rodzaj_dzialalnosci'])) ? esc_attr($_POST['rodzaj_dzialalnosci']) : ''; ?>" />
+        </p>
+
+        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+            <label for="reg_billing_vat"><?php esc_html_e('NIP (VAT)', 'storefront-child'); ?> <span class="required">*</span></label>
+            <input type="text" name="billing_vat" id="reg_billing_vat" value="<?php echo (!empty($_POST['billing_vat'])) ? esc_attr($_POST['billing_vat']) : ''; ?>" required />
+        </p>
+
+        <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+            <label for="reg_confirm_password"><?php esc_html_e('Potwierdź hasło', 'storefront-child'); ?> <span class="required">*</span></label>
+            <input type="password" name="confirm_password" id="reg_confirm_password" autocomplete="new-password" required />
+        </p>
+*/ ?>
+        <?php do_action('woocommerce_register_form'); ?>
+
+        <p class="woocommerce-form-row form-row">
+            <?php wp_nonce_field('woocommerce-register', 'woocommerce-register-nonce'); ?>
+            <button type="submit" class="woocommerce-Button button" name="register" value="<?php esc_attr_e('Zarejestruj się', 'storefront-child'); ?>"><?php esc_html_e('Zarejestruj się', 'storefront-child'); ?></button>
+        </p>
+
+        <?php do_action('woocommerce_register_form_end'); ?>
+    </form>
+    <?php
+
+    return ob_get_clean();
+}
+
+
+add_shortcode('rejestracja_firmowa', 'formularz_rejestracji_firmowej_shortcode');

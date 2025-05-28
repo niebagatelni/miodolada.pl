@@ -1,0 +1,97 @@
+<?php
+
+
+add_action('woocommerce_created_customer', 'adm_notify_new_customer_and_log');
+
+function adm_notify_new_customer_and_log($user_id) {
+
+	$roles_in = array('customer', 'subscriber', 'zainteresowany_oferta');
+	$roles_ex = array('shop_manager', 'administrator');
+
+	$recipients = [
+	    //'sklep@pachniczowka.pl',
+	    'artur.dlugosz@pachniczowka.pl',
+	    'artur.dlugosz@outlook.com',
+	    'adnauczyciel@gmail.com'
+	];
+
+
+if (!isset($roles_in, $roles_ex, $recipients)) adm_log2("customer-registration-notification: Błędy w rolach i odbiorcach (nie istnieją)");
+if ( empty($roles_in) || empty($roles_ex) || empty($recipients) ) adm_log2("customer-registration-notification: Błędy w rolach i odbiorcach (są puste)");
+
+
+
+	$user = get_userdata($user_id);
+	if (!$user) {
+		adm_log2("customer-registration-notification: Nie znaleziono użytkownika o ID: $user_id");
+		return;
+	}
+
+	$user_roles = (array) $user->roles;
+
+	$allowed = false;
+	foreach ($user_roles as $role) {
+		if (in_array($role, $roles_ex)) {
+			return;
+		}
+		if (in_array($role, $roles_in)) {
+			$allowed = true;
+		}
+	}
+
+	if (!$allowed) {
+		adm_log2("Użytkownik ID $user_id nie posiada żadnej z dozwolonych ról. Powiadomienie NIE zostanie wysłane.");
+		return;
+	}
+
+
+
+    // Budowa treści maila
+	$subject = 'Nowy klient zarejestrowany w sklepie';
+
+	$body_lines = [
+	    "Nowy klient zainteresowany ofertą hurtową:",
+	    "Email: " . $user->user_email,
+	    "Nazwa firmy: " . get_user_meta($user_id, 'billing_company', true),
+	    "Rodzaj działalności: " . get_user_meta($user_id, 'rodzaj_dzialalnosci', true),
+	    "NIP: " . get_user_meta($user_id, 'billing_tax_no', true),
+	    "Adres: " . trim(get_user_meta($user_id, 'billing_address_1', true) . ' ' . get_user_meta($user_id, 'billing_address_2', true)),
+	    "Telefon: " . get_user_meta($user_id, 'billing_phone', true)
+	];
+
+	$body = implode("\n", $body_lines);
+
+
+	$reply_email = 'artur.dlugosz@pachniczowka.pl';
+	
+	if (isset($user) && is_object($user)) {
+	    if (!empty($user->user_email) && filter_var($user->user_email, FILTER_VALIDATE_EMAIL)) {
+	        $reply_email = $user->user_email;
+	    }
+	}
+
+
+	$headers = [
+		'Content-Type: text/plain; charset=UTF-8',
+		'Reply-To: ' . $reply_email
+	];
+
+
+
+	$mailer = WC()->mailer();
+	$html = $mailer->wrap_message($subject, nl2br($body));
+	$headers = [
+	    'Content-Type: text/html; charset=UTF-8',
+	    'Reply-To: ' . $reply_email
+	];
+	
+	foreach ($recipients as $email) {
+	    $sent = $mailer->send($email, $subject, $html, $headers);
+	
+	    if (!$sent) {
+	        adm_log2("customer-registration-notification: Nie udało się wysłać powiadomienia rejestracyjnego:\n - user ID: $user_id\n - email: $email");
+	    }
+	}
+
+
+}

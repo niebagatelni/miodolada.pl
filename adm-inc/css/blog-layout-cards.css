@@ -1,0 +1,45 @@
+.blog #main{
+	position		: relative;
+	display			: -webkit-box;
+	display			: -moz-box;
+	display			: -ms-flexbox;
+	display			: -webkit-flex;
+	display			: flex;
+	align-items		: normal;
+	justify-content	: space-evenly;
+	gap				: 0.5em;
+	flex-wrap		: wrap;
+}
+
+.blog #main article{
+	width		: 320px;
+	max-width	: 100%;
+	display		: inline-block;
+	position	: relative;
+}
+
+.blog #main article:hover{
+	box-shadow: 0 0 2px gray;
+}
+
+.adm--post-loop-content{
+	text-align	: justify;
+	font-size	: 1em;
+	padding		: 0.8em;
+}
+
+.adm--post-loop-image{
+	max-width	: 100%;
+	width:100%;
+}
+.absolute-link{
+	position	: absolute;
+	width		: 100%;
+	height		: 100%;
+}
+
+
+
+.blog #post-navigation{
+	width: 100%;
+}

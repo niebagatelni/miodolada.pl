@@ -1,0 +1,199 @@
+<?php
+
+function adm_customizer_add_heading($id, $title, $wp_customize) {
+$wp_customize->add_setting($id, [
+    'sanitize_callback' => 'esc_html',
+]);
+
+$wp_customize->add_control($id, [
+    'section' => 'adm__color_settings',
+    'type' => 'hidden',
+    'description' => '<h2 style="margin-top:20px; text-align: center; font-style: normal;">'.$title.'</h2>',
+]);
+
+}
+
+
+
+function adm__sanitize_custom_css($input) {
+    return wp_kses($input, []);
+}
+
+function adm__customizer_register( $wp_customize ) {
+
+    // Jedna wspólna sekcja
+    $wp_customize->add_section('adm__color_settings', [
+        'title' => 'Ustawienia kolorów',
+        'priority' => 30,
+    ]);
+
+
+    // Header
+
+	adm_customizer_add_heading("adm__title_header", "Nagłówek", $wp_customize);
+
+    $header_fields = [
+        'title_color' => 'Kolor tytułu',
+        'subtitle_color' => 'Kolor podtytułu',
+        'menu_bg' => 'Tło menu',
+        'menu_link_color' => 'Kolor linków',
+        'menu_link_hover' => 'Link hover',
+        'menu_link_active' => 'Link active',
+    ];
+
+    foreach ($header_fields as $key => $label) {
+        $setting_id = "adm__header_{$key}";
+        $wp_customize->add_setting($setting_id, [
+            'default' => '',
+            'sanitize_callback' => 'sanitize_hex_color',
+        ]);
+        $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, $setting_id, [
+            'label' => $label,
+            'section' => 'adm__color_settings',
+            'settings' => $setting_id,
+        ]));
+    }
+
+    // Custom CSS dla nagłówka
+    $wp_customize->add_setting('adm__header_custom_css', [
+        'default' => '',
+        'sanitize_callback' => 'adm__sanitize_custom_css',
+    ]);
+    $wp_customize->add_control('adm__header_custom_css', [
+        'type' => 'textarea',
+        'label' => 'Dodatkowy CSS',
+        'section' => 'adm__color_settings',
+    ]);
+
+
+
+
+    // Content
+
+	adm_customizer_add_heading("adm__title_content", "Treść", $wp_customize);
+
+    $content_fields = [
+        'text_color' => 'Kolor tekstu',
+        'link_color' => 'Link normalny',
+        'link_hover' => 'Link hover',
+        'link_active' => 'Link active',
+        'button_text_color' => 'Przycisk tekst',
+        'button_bg_color' => 'Przycisk tło',
+        'button_text_hover' => 'Przycisk hover tekst',
+        'button_bg_hover' => 'Przycisk hover tło',
+    ];
+
+    foreach ($content_fields as $key => $label) {
+        $setting_id = "adm__content_{$key}";
+        $wp_customize->add_setting($setting_id, [
+            'default' => '',
+            'sanitize_callback' => 'sanitize_hex_color',
+        ]);
+        $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, $setting_id, [
+            'label' => $label,
+            'section' => 'adm__color_settings',
+            'settings' => $setting_id,
+        ]));
+    }
+
+    $wp_customize->add_setting('adm__content_custom_css', [
+        'default' => '',
+        'sanitize_callback' => 'adm__sanitize_custom_css',
+    ]);
+    $wp_customize->add_control('adm__content_custom_css', [
+        'type' => 'textarea',
+        'label' => 'Dodatkowy CSS do Treści',
+        'section' => 'adm__color_settings',
+    ]);
+
+
+
+
+    // Footer
+
+	adm_customizer_add_heading("adm__title_footer", "Stopka", $wp_customize);
+
+    $footer_fields = [
+        'bg' => 'Tło',
+        'heading_color' => 'Kolor nagłówków',
+        'text_color' => 'Kolor tekstów',
+        'link_color' => 'Link normalny',
+        'link_hover' => 'Link hover',
+        'link_active' => 'Link active',
+    ];
+
+    foreach ($footer_fields as $key => $label) {
+        $setting_id = "adm__footer_{$key}";
+        $wp_customize->add_setting($setting_id, [
+            'default' => '',
+            'sanitize_callback' => 'sanitize_hex_color',
+        ]);
+        $wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, $setting_id, [
+            'label' => $label,
+            'section' => 'adm__color_settings',
+            'settings' => $setting_id,
+        ]));
+    }
+}
+add_action('customize_register', 'adm__customizer_register');
+
+
+
+
+function adm__output_custom_variables() {
+    $css = ':root {' . PHP_EOL;
+
+    $map = [
+        'adm__header_title_color' => '--adm--header-title-color',
+        'adm__header_subtitle_color' => '--adm--header-subtitle-color',
+        'adm__header_menu_bg' => '--adm--header-menu-bg',
+        'adm__header_menu_link_color' => '--adm--header-menu-link-color',
+        'adm__header_menu_link_hover' => '--adm--header-menu-link-hover',
+        'adm__header_menu_link_active' => '--adm--header-menu-link-active',
+
+        'adm__content_text_color' => '--adm--content-text-color',
+        'adm__content_link_color' => '--adm--content-link-color',
+        'adm__content_link_hover' => '--adm--content-link-hover',
+        'adm__content_link_active' => '--adm--content-link-active',
+        'adm__content_button_text_color' => '--adm--button-color',
+        'adm__content_button_bg_color' => '--adm--button-bgcolor',
+        'adm__content_button_text_hover' => '--adm--button-hover-color',
+        'adm__content_button_bg_hover' => '--adm--button-hover-bgcolor',
+
+        'adm__footer_bg' => '--adm--footer-bg',
+        'adm__footer_heading_color' => '--adm--footer-heading-color',
+        'adm__footer_text_color' => '--adm--footer-text-color',
+        'adm__footer_link_color' => '--adm--footer-link-color',
+        'adm__footer_link_hover' => '--adm--footer-link-hover',
+        'adm__footer_link_active' => '--adm--footer-link-active',
+    ];
+
+    foreach ($map as $setting => $var) {
+        $val = get_theme_mod($setting);
+        if ($val) {
+            $css .= "  {$var}: {$val};" . PHP_EOL;
+        }
+    }
+
+    $css .= '}' . PHP_EOL;
+
+    $custom_css = get_theme_mod('adm__header_custom_css', '') . "\n" . get_theme_mod('adm__content_custom_css', '');
+
+    echo '<style id="adm__custom_variables">' . PHP_EOL;
+    echo $css;
+    echo $custom_css;
+    echo PHP_EOL . '</style>';
+}
+add_action('wp_head', 'adm__output_custom_variables');
+
+
+
+add_action('customize_controls_enqueue_scripts', function () {
+    wp_enqueue_style(
+        'adm--customizer',
+        get_theme_file_uri() . '/adm-inc/css/customizer.css',
+        [],
+        '1.0.0'
+    );
+});
+

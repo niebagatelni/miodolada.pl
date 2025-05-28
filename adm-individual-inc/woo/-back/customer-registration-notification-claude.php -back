@@ -1,0 +1,382 @@
+<?php
+
+
+
+/**
+ * Klasa obsługująca powiadomienia o nowych klientach
+ */
+class ADM_Customer_Notifications {
+    
+    /**
+     * Konstruktor klasy
+     */
+    public function __construct() {
+        // Hook wywoływany po utworzeniu nowego klienta
+        add_action('woocommerce_created_customer', array($this, 'send_new_customer_notification'), 20, 1);
+    }
+    
+    /**
+     * Sprawdza czy rola użytkownika kwalifikuje się do wysłania powiadomienia
+     * 
+     * @param int $user_id ID użytkownika
+     * @return bool Zwraca true jeśli rola użytkownika spełnia kryteria
+     */
+    private function check_user_role($user_id) {
+        $user = get_userdata($user_id);
+        
+        if (!$user) {
+            adm_log2("Nie można pobrać danych użytkownika o ID: " . $user_id);
+            return false;
+        }
+        
+        // Zdefiniuj role, które są dozwolone i wykluczone
+        $roles_in = array('customer', 'subscriber');
+        $roles_ex = array('administrator', 'shop_manager');
+        
+        // Sprawdź role użytkownika
+        $user_roles = $user->roles;
+        
+        $has_included_role = false;
+        foreach ($user_roles as $role) {
+            if (in_array($role, $roles_in)) {
+                $has_included_role = true;
+                break;
+            }
+        }
+        
+        $has_excluded_role = false;
+        foreach ($user_roles as $role) {
+            if (in_array($role, $roles_ex)) {
+                $has_excluded_role = true;
+                break;
+            }
+        }
+        
+        return $has_included_role && !$has_excluded_role;
+    }
+    
+    /**
+     * Pobiera dane użytkownika do powiadomienia
+     * 
+     * @param int $user_id ID użytkownika
+     * @return array Dane użytkownika
+     */
+    private function get_user_data($user_id) {
+        $user = get_userdata($user_id);
+        
+        if (!$user) {
+            adm_log2("Nie można pobrać danych użytkownika o ID: " . $user_id);
+            return array();
+        }
+        
+        $user_data = array(
+            'ID' => $user_id,
+            'user_login' => $user->user_login,
+            'user_email' => $user->user_email,
+            'display_name' => $user->display_name,
+            'first_name' => get_user_meta($user_id, 'first_name', true),
+            'last_name' => get_user_meta($user_id, 'last_name', true),
+            'billing_company' => get_user_meta($user_id, 'billing_company', true),
+            'rodzaj_dzialalnosci' => get_user_meta($user_id, 'rodzaj_dzialalnosci', true),
+            'billing_tax_no' => get_user_meta($user_id, 'billing_tax_no', true),
+            'billing_address_1' => get_user_meta($user_id, 'billing_address_1', true),
+            'billing_address_2' => get_user_meta($user_id, 'billing_address_2', true),
+            'billing_city' => get_user_meta($user_id, 'billing_city', true),
+            'billing_postcode' => get_user_meta($user_id, 'billing_postcode', true),
+            'billing_country' => get_user_meta($user_id, 'billing_country', true),
+            'billing_state' => get_user_meta($user_id, 'billing_state', true),
+            'billing_phone' => get_user_meta($user_id, 'billing_phone', true),
+            'registered_date' => $user->user_registered,
+            'roles' => implode(', ', $user->roles)
+        );
+        
+        return $user_data;
+    }
+    
+    /**
+     * Przygotowuje treść wiadomości email z danymi klienta
+     * 
+     * @param array $user_data Dane użytkownika
+     * @return string Treść wiadomości email
+     */
+    private function prepare_email_content($user_data) {
+        $subject = 'Nowy klient zarejestrowany w sklepie: ' . get_bloginfo('name');
+        
+        $content = '<h2>Nowy klient zarejestrował się w sklepie</h2>';
+        $content .= '<p><strong>Data rejestracji:</strong> ' . date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($user_data['registered_date'])) . '</p>';
+        $content .= '<h3>Dane klienta:</h3>';
+        $content .= '<ul>';
+        $content .= '<li><strong>ID użytkownika:</strong> ' . $user_data['ID'] . '</li>';
+        $content .= '<li><strong>Login:</strong> ' . $user_data['user_login'] . '</li>';
+        $content .= '<li><strong>Email:</strong> ' . $user_data['user_email'] . '</li>';
+        $content .= '<li><strong>Imię:</strong> ' . $user_data['first_name'] . '</li>';
+        $content .= '<li><strong>Nazwisko:</strong> ' . $user_data['last_name'] . '</li>';
+        $content .= '<li><strong>Nazwa firmy:</strong> ' . $user_data['billing_company'] . '</li>';
+        $content .= '<li><strong>Rodzaj działalności:</strong> ' . $user_data['rodzaj_dzialalnosci'] . '</li>';
+        $content .= '<li><strong>NIP:</strong> ' . $user_data['billing_tax_no'] . '</li>';
+        $content .= '<li><strong>Adres firmy:</strong> ' . $user_data['billing_address_1'] . '</li>';
+        
+        if (!empty($user_data['billing_address_2'])) {
+            $content .= '<li><strong>Adres 2:</strong> ' . $user_data['billing_address_2'] . '</li>';
+        }
+        
+        if (!empty($user_data['billing_city'])) {
+            $content .= '<li><strong>Miasto:</strong> ' . $user_data['billing_city'] . '</li>';
+        }
+        
+        if (!empty($user_data['billing_postcode'])) {
+            $content .= '<li><strong>Kod pocztowy:</strong> ' . $user_data['billing_postcode'] . '</li>';
+        }
+        
+        if (!empty($user_data['billing_country'])) {
+            $content .= '<li><strong>Kraj:</strong> ' . $user_data['billing_country'] . '</li>';
+        }
+        
+        if (!empty($user_data['billing_state'])) {
+            $content .= '<li><strong>Województwo:</strong> ' . $user_data['billing_state'] . '</li>';
+        }
+        
+        $content .= '<li><strong>Telefon:</strong> ' . $user_data['billing_phone'] . '</li>';
+        $content .= '<li><strong>Role:</strong> ' . $user_data['roles'] . '</li>';
+        $content .= '</ul>';
+        
+        $content .= '<p>Wiadomość wygenerowana automatycznie. Proszę nie odpowiadać.</p>';
+        
+        return array(
+            'subject' => $subject,
+            'content' => $content
+        );
+    }
+    
+    /**
+     * Wysyła powiadomienie o nowym kliencie
+     * 
+     * @param int $user_id ID użytkownika
+     */
+    public function send_new_customer_notification($user_id) {
+        try {
+            // Sprawdź czy rola użytkownika kwalifikuje się do wysłania powiadomienia
+            if (!$this->check_user_role($user_id)) {
+                adm_log2("Użytkownik o ID: " . $user_id . " nie spełnia kryteriów powiadomienia (role)");
+                return;
+            }
+            
+            // Pobierz dane użytkownika
+            $user_data = $this->get_user_data($user_id);
+            
+            if (empty($user_data)) {
+                adm_log2("Nie można pobrać danych użytkownika o ID: " . $user_id);
+                return;
+            }
+            
+            // Przygotuj treść wiadomości
+            $email_content = $this->prepare_email_content($user_data);
+            
+            // Adresy odbiorców powiadomienia
+            $not_recipients = array(
+                'admin@example.com',
+                'manager@example.com'
+                // Dodaj tutaj więcej adresów email
+            );
+            
+            // Nagłówki wiadomości
+            $headers = array(
+                'Content-Type: text/html; charset=UTF-8',
+	        'Reply-To: ' . $user->user_email,
+                'From: ' . get_bloginfo("name") . ' <' . get_option("admin_email") . '>'
+            );
+            
+            // Wyślij wiadomość do każdego odbiorcy
+            foreach ($not_recipients as $recipient) {
+                $sent = wp_mail(
+                    $recipient,
+                    $email_content['subject'],
+                    $email_content['content'],
+                    $headers
+                );
+                
+                if (!$sent) {
+                    adm_log2("Błąd wysyłania powiadomienia do: " . $recipient . " dla użytkownika o ID: " . $user_id);
+                } else {
+                    adm_log2("Powiadomienie wysłane pomyślnie do: " . $recipient . " dla użytkownika o ID: " . $user_id);
+                }
+            }
+            
+        } catch (Exception $e) {
+            adm_log2("Wystąpił błąd podczas wysyłania powiadomienia: " . $e->getMessage());
+        }
+    }
+}
+
+// Inicjalizacja klasy powiadomień
+function init_adm_customer_notifications() {
+    new ADM_Customer_Notifications();
+}
+
+add_action('plugins_loaded', 'init_adm_customer_notifications');
+
+/**
+ * Dodaje panel ustawień powiadomień w administracji
+ */
+class ADM_Notifications_Settings {
+    
+    /**
+     * Konstruktor klasy
+     */
+    public function __construct() {
+        add_action('admin_menu', array($this, 'add_admin_menu'));
+        add_action('admin_init', array($this, 'register_settings'));
+    }
+    
+    /**
+     * Dodaje menu w panelu administracyjnym
+     */
+    public function add_admin_menu() {
+        add_submenu_page(
+            'woocommerce',
+            'Ustawienia powiadomień o klientach',
+            'Powiadomienia o klientach',
+            'manage_options',
+            'adm-customer-notifications',
+            array($this, 'settings_page')
+        );
+    }
+    
+    /**
+     * Rejestruje ustawienia
+     */
+    public function register_settings() {
+        register_setting('adm_notifications', 'adm_notification_recipients');
+        register_setting('adm_notifications', 'adm_included_roles');
+        register_setting('adm_notifications', 'adm_excluded_roles');
+        
+        add_settings_section(
+            'adm_notifications_section',
+            'Ustawienia powiadomień o nowych klientach',
+            array($this, 'settings_section_callback'),
+            'adm-customer-notifications'
+        );
+        
+        add_settings_field(
+            'adm_notification_recipients',
+            'Odbiorcy powiadomień',
+            array($this, 'recipients_field_callback'),
+            'adm-customer-notifications',
+            'adm_notifications_section'
+        );
+        
+        add_settings_field(
+            'adm_included_roles',
+            'Dozwolone role użytkowników',
+            array($this, 'included_roles_callback'),
+            'adm-customer-notifications',
+            'adm_notifications_section'
+        );
+        
+        add_settings_field(
+            'adm_excluded_roles',
+            'Wykluczone role użytkowników',
+            array($this, 'excluded_roles_callback'),
+            'adm-customer-notifications',
+            'adm_notifications_section'
+        );
+    }
+    
+    /**
+     * Callback dla sekcji ustawień
+     */
+    public function settings_section_callback() {
+        echo '<p>Skonfiguruj, kto powinien otrzymywać powiadomienia o nowych klientach oraz jakie role są uwzględniane.</p>';
+    }
+    
+    /**
+     * Callback dla pola odbiorców
+     */
+    public function recipients_field_callback() {
+        $recipients = get_option('adm_notification_recipients', '');
+        ?>
+        <textarea name="adm_notification_recipients" rows="5" cols="50" class="large-text"><?php echo esc_textarea($recipients); ?></textarea>
+        <p class="description">Wprowadź adresy email odbiorców powiadomień, po jednym w linii.</p>
+        <?php
+    }
+    
+    /**
+     * Callback dla pola dozwolonych ról
+     */
+    public function included_roles_callback() {
+        $included_roles = get_option('adm_included_roles', 'customer,subscriber');
+        ?>
+        <input type="text" name="adm_included_roles" value="<?php echo esc_attr($included_roles); ?>" class="regular-text" />
+        <p class="description">Wprowadź nazwy ról oddzielone przecinkami. Powiadomienia będą wysyłane tylko dla użytkowników z tymi rolami.</p>
+        <?php
+    }
+    
+    /**
+     * Callback dla pola wykluczonych ról
+     */
+    public function excluded_roles_callback() {
+        $excluded_roles = get_option('adm_excluded_roles', 'administrator,shop_manager');
+        ?>
+        <input type="text" name="adm_excluded_roles" value="<?php echo esc_attr($excluded_roles); ?>" class="regular-text" />
+        <p class="description">Wprowadź nazwy ról oddzielone przecinkami. Powiadomienia nie będą wysyłane dla użytkowników z tymi rolami.</p>
+        <?php
+    }
+    
+    /**
+     * Renderuje stronę ustawień
+     */
+    public function settings_page() {
+        ?>
+        <div class="wrap">
+            <h1>Ustawienia powiadomień o nowych klientach</h1>
+            <form method="post" action="options.php">
+                <?php
+                settings_fields('adm_notifications');
+                do_settings_sections('adm-customer-notifications');
+                submit_button();
+                ?>
+            </form>
+            
+            <hr>
+            
+            <h2>Testowanie powiadomień</h2>
+            <form method="post" action="">
+                <?php wp_nonce_field('adm_test_notification', 'adm_test_notification_nonce'); ?>
+                <p>
+                    <input type="submit" name="adm_test_notification" class="button button-secondary" value="Wyślij testowe powiadomienie" />
+                </p>
+            </form>
+            
+            <hr>
+            
+            <h2>Logi błędów</h2>
+            <p>Logi błędów powiadomień e-mail znajdują się w katalogu: <code><?php echo ADM_LOG_DIR_2; ?></code></p>
+            
+            <?php
+            // Obsługa wysyłania testowego powiadomienia
+            if (isset($_POST['adm_test_notification']) && check_admin_referer('adm_test_notification', 'adm_test_notification_nonce')) {
+                $current_user_id = get_current_user_id();
+                
+                if ($current_user_id) {
+                    // Inicjalizuj klasę powiadomień i wyślij testowe powiadomienie
+                    $notifications = new ADM_Customer_Notifications();
+                    $notifications->send_new_customer_notification($current_user_id);
+                    
+                    echo '<div class="notice notice-success is-dismissible"><p>Testowe powiadomienie zostało wysłane dla bieżącego użytkownika (ID: ' . $current_user_id . ').</p></div>';
+                } else {
+                    echo '<div class="notice notice-error is-dismissible"><p>Nie można wysłać testowego powiadomienia. Brak zalogowanego użytkownika.</p></div>';
+                }
+            }
+            ?>
+            
+        </div>
+        <?php
+    }
+}
+
+// Inicjalizacja klasy ustawień
+function init_adm_notifications_settings() {
+    new ADM_Notifications_Settings();
+}
+
+add_action('plugins_loaded', 'init_adm_notifications_settings');
