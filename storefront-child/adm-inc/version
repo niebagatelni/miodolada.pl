@@ -1,0 +1,25 @@
+
+____________________________
+
+
+
+____________________________
+v. 1.3
+06.02.2025
+
+
+Zmiany w Prezentacjach:
+ - w prawym panelu edycji prezentacji dodany przycisk, który numeruje kolejno kotwice i atrybut `data-audio-filename`
+ - unormowany blok custom/adm-slide (divy, tytuły, atrybut pliku audio)
+ - dodany plik szablonu strony Prezentacji (jeszce nie gotowy)
+ - dodane dwa pliki szablonów Prezentacji: 
+   * with-markups wyświetla cały content wpisu z bazy, razem ze znacznikami
+   * per-block wyświetla suchą treść każdego bloku z kropkąna końcu.   -> Przygotować do generowania lektora.
+ - nieudana próba zamiany na custom/adm-slide nnych bloków niż grupa
+ - nieudana próba skrótów klawiszowych
+ - nieudana próba dodania szybkiego przycisku do zmiany bloku, w prawym panelu bloku i w białym pasku pojawiającym się nad blokiem
+
+
+____________________________
+v. 1.2 
+26-01-2024
