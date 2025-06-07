@@ -1,0 +1,86 @@
+
+/*  ------------------------------------------   */
+/*  --------------  FRONT SITE  --------------   */
+
+.home {
+    background-image: url(https://miodolada.pl/layout/comb_dots_3.png), url(https://miodolada.pl/layout/comb_dots.png);
+    background-attachment: fixed, fixed;
+    background-position: top left, top right;
+    background-repeat: no-repeat, no-repeat;
+    background-size: 15%, 15%;
+}
+
+
+
+#korzysci img{
+	box-shadow: 2px 2px 6px #7f7f7f, -2px -2px 6px #7f7f7f;
+}
+
+#main-smaki img{
+	max-width: 500px;
+	margin-right:0;
+	margin-left: auto;
+}
+
+
+.site-footer p,
+.site-footer strong,
+.site-footer b,
+.site-footer ul,
+.site-footer li,
+.site-footer a{
+	color: white!important;
+	font-family: 'Roboto';
+}
+
+
+
+#main p{
+	margin: 0;
+}
+
+
+
+.form-oferta{
+	border: 1px solid #abb8c3;
+    border-radius: 5px;
+    padding: 0 1em;
+}
+
+.wpforms-container{
+	border: 1px solid black;
+}
+
+
+.wpforms-container .wpforms-field-container{
+	display: flex;
+	flex-wrap: wrap;
+	width:100%;
+
+}
+
+.wpforms-container .wpforms-field-container .wpforms-field {
+	width: 50% !important;
+}
+.wpforms-container .wpforms-field-container .wpforms-field:last-child {
+	width: 100% !important;
+}
+
+.wpforms-container .wpforms-field-container .wpforms-field > input,
+.wpforms-container .wpforms-field-container .wpforms-field-textarea
+{
+    width: 90% !important;
+    max-width: 100% !important;
+}
+
+
+.wpforms-submit-container::before {
+  content: " * Zgadzam się na korespondencję z firmą Pachniczówka Sp. z o.o. na temat hurtowej oferty";
+  display: inline-block;
+	margin-bottom: 1em;
+}
+
+.wpforms-submit{
+	display: block;
+}
+

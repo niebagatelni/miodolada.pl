@@ -1,5 +1,6 @@
  
 header{
+	/* display: grid; */
     display: block;
     justify-content: center;
     align-content: center;
@@ -17,9 +18,9 @@ header > *{
 }
 
 
-
 .site-header .site-branding,
 .site-branding.grid{
+	/* display: grid; */				  
     justify-items: center;
     justify-content: center;
     align-items: center;

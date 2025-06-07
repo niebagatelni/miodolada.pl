@@ -23,7 +23,6 @@ adm_include_in_theme('/adm-inc/includes/post-metadata.php');
 if( class_exists('WooCommerce') ){
 	adm_include_in_theme('/adm-inc/woo/menu-primary-icons.php');
 	adm_include_in_theme('/adm-inc/woo/customers-list.php');
-
 }
 
  
@@ -41,7 +40,6 @@ color-settings-output 	: 100
 */
 
 
-
 add_action('admin_menu', 'adm_custom_menu');
 function adm_custom_menu()
 {
@@ -49,7 +47,6 @@ function adm_custom_menu()
 }
 
 
-//remove_action( 'after_setup_theme', 'storefront_customizer_colors', 999 );
 
 
 

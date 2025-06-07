@@ -54,7 +54,7 @@ function adm__table_slim_register() {
 }
 add_action('init', 'adm__table_slim_register');
 
-// Wstrzyknięcie czystego CSS inline
+// Wstrzyknięcie czystego CSS inline do <head>
 function adm__table_slim_style() {
     echo '<style name="adm--table-slim">
         .is-style-adm-table-slim {
