@@ -1,11 +1,28 @@
 <?php
 
 
-add_action('woocommerce_created_customer', 'adm_notify_new_customer');
+add_filter( 'wp_new_user_notification_email', 'adm__disable_notify_for_new_zainteresowany_oferta', 10, 3 );
 
-function adm_notify_new_customer($user_id) {
+function adm__disable_notify_for_new_zainteresowany_oferta( $email, $user, $blogname ) {
+    if ( in_array( 'zainteresowany_oferta', (array) $user->roles ) ) {
+        // Zwraca pustą zawartość, aby zablokować e-mail
+        return [
+            'to'      => '',
+            'subject' => '',
+            'message' => '',
+            'headers' => '',
+        ];
+    }
 
-	$roles_in = array('customer', 'subscriber', 'zainteresowany_oferta');
+    return $email;
+}
+
+
+add_action('woocommerce_created_customer', 'adm__notify_new_customer_to_admins');
+
+function adm__notify_new_customer_to_admins($user_id) {
+
+	$roles_in = array('zainteresowany_oferta');
 	$roles_ex = array('shop_manager', 'administrator');
 
 	$recipients = [
@@ -101,6 +118,13 @@ function adm_notify_new_customer($user_id) {
 		}
 	}
 
+} // <-- function adm_notify_new_customer($user_id)
+
+
+
+
+add_action('woocommerce_created_customer', 'adm__notify_new_customer_to_customer');
+function adm__notify_new_customer_to_customer($user_id) {
 
 	// ----------------------------------------
 	// Budowa treści maila do klienta
@@ -130,8 +154,6 @@ function adm_notify_new_customer($user_id) {
 
 	$message_html .= '<p>Dziękujemy słodko :) </p>';
 
-
-
 	$mailer = WC()->mailer();
 	$wrapped_message = $mailer->wrap_message($subject, $message_html);
 	$headers = [
@@ -151,12 +173,11 @@ function adm_notify_new_customer($user_id) {
 				['Content-Type: text/plain; charset=UTF-8']
 			);
 
-
-	}
-
-
+	``		adm_log2("[customer-registration-notification]: Błąd wysyłki e-maila do klienta: $user_email");
+		}
 
 
 
 
-} // <-- function adm_notify_new_customer($user_id)
+} // <-- adm__notify_new_customer_to_customer
+
