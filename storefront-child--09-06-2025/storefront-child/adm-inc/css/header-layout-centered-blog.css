@@ -1,0 +1,35 @@
+ 
+header{
+	/* display: grid; */			  
+    display: block;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    justify-items: center;
+}
+
+header > *{
+	width: auto !important;
+}
+
+.site-branding,
+.site-branding.grid{
+	/* display: grid; */			  
+    justify-items: center;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+}
+
+.site-branding.flex{
+    display: flex;
+    justify-items: center;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    flex-wrap: wrap;
+    gap: 0 2em;
+	}
+	
+	
+	

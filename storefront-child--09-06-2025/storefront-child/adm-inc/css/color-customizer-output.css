@@ -1,0 +1,204 @@
+
+/*  ------------------------------------------   */
+/*  ---------------  NAGŁÓWEK  ---------------   */
+
+.site-header {
+	color: var(--adm--header-text-color);
+	background-color: var(--adm--header-bg-color);
+}
+
+
+.site-header .site-title,
+.site-header .site-title * {
+	color: var(--adm--header-title-color);
+}
+
+.site-header .site-description,
+.site-header .site-description *{
+	color: var(--adm--header-subtitle-color);
+}
+
+
+/*  ------------------------------------------   */
+/*  -----------------  MENU  -----------------   */
+
+.site-header nav,
+.site-header .menu,
+.site-header .storefront-primary-navigation {
+	background-color: var(--adm--header-menu-bg);
+	background-color: var(--adm--header-menu-bg-color);
+}
+
+
+
+.site-header nav a,
+.site-header .menu a,
+.site-header .storefront-primary-navigation  a,
+.main-navigation ul.menu > li > a,
+.main-navigation ul.nav-menu > li > a
+{
+	color: var(--adm--header-menu-link-color);
+}
+
+
+
+.site-header nav a.active,
+.site-header .menu a.active,
+.site-header .storefront-primary-navigation a.active,
+.main-navigation ul.menu > li > a:active,
+.main-navigation ul.nav-menu > li > a:active,
+.main-navigation ul.menu > li.current-menu-item > a,
+.main-navigation ul.nav-menu > li.current-menu-item > a
+
+
+{
+	color: var(--adm--header-menu-link-active-color);
+}
+
+
+
+.site-header nav a:hover,
+.site-header .menu a:hover,
+.site-header .storefront-primary-navigation a:hover,
+.main-navigation ul.menu > li > a:hover,
+.main-navigation ul.nav-menu > li > a:hover
+
+{
+	color: var(--adm--header-menu-link-hover-color);
+}
+
+
+
+
+
+/*  ------------------------------------------   */
+/*  ----------------  TREŚĆ  -----------------   */
+
+
+.hentry .entry-content,
+.content
+{
+  	color: var(--adm--content-text-color);
+}
+
+a,
+.hentry .entry-content a,
+.content a 
+{
+	color: var(--adm--content-link-color);
+}
+
+a:hover,
+.hentry .entry-content a:hover,
+.content a:hover 
+{
+	color: var(--adm--content-link-hover-color);
+}
+
+a:active,
+.hentry .entry-content a:active,
+.content a:active 
+{
+	color: var(--adm--content-link-active-color);
+}
+
+
+
+
+
+button,
+.button,
+.hentry .entry-content a.button,
+.content a.button,
+a.button,
+.wp-block-button a,
+.wp-element-button a,
+.hentry .entry-content .wp-block-button .wp-block-button__link,
+a.wp-block-button__link:not(.has-background)
+{
+	color: var(--adm--button-text-color);
+	background-color: var(--adm--button-bg-color);
+}
+
+.adm-custom-button{
+	color: var(--adm--button-text-color) !important;
+	background-color: var(--adm--button-bg-color) !important;	
+	background: var(--adm--button-bg-color) !important;	
+}
+
+button:active,
+.button:active,
+.hentry .entry-content a.button:active,
+.content a.button:active,
+a.button:active,
+.wp-block-button a:active,
+.wp-element-button a:active,
+.hentry .entry-content .wp-block-button .wp-block-button__link:active,
+a.wp-block-button__link:not(.has-background):active
+{
+	color: var(--adm--button-active-text-color);
+	background-color: var(--adm--button-active-bg-color);
+}
+
+.adm-custom-button:active{
+	color: var(--adm--button-active-text-color) !important;
+	background-color: var(--adm--button-active-bg-color) !important;
+	box-shadow: 0px 0px 3px #7c7c7c !important;
+}
+
+
+
+button:hover,
+.button:hover,
+.hentry .entry-content a.button:hover,
+.content a.button:hover,
+a.button:hover,
+.wp-block-button a:hover,
+.wp-element-button a:hover,
+.hentry .entry-content .wp-block-button .wp-block-button__link:hover,
+.wp-block-button__link:not(.has-background):hover
+{
+	color: var(--adm--button-active-text-color);
+	background-color: var(--adm--button-active-bg-color);
+}
+	
+.adm-custom-button:hover{
+	color: var(--adm--button-active-text-color) !important;
+	background-color: var(--adm--button-active-bg-color) !important;
+}
+
+
+
+/*  ------------------------------------------   */
+/*  ----------------  STOPKA  ----------------   */
+
+
+
+footer.site-footer {
+	background-color: var(--adm--footer-bg-color);	
+	color: var(--adm--footer-text-color);
+}
+
+footer.site-footer h1, 
+footer.site-footer h2, 
+footer.site-footer h3, 
+footer.site-footer h4, 
+footer.site-footer h5, 
+footer.site-footer h6 {
+	color: var(--adm--footer-heading-color);
+}
+
+.site-footer a:not(.button):not(.components-button),
+footer.site-footer a {
+	color: var(--adm--footer-link-color);
+}
+
+.site-footer a:not(.button):not(.components-button):hover,
+footer.site-footer a:hover {
+	color: var(--adm--footer-link-hover-color);
+}
+
+.site-footer a:not(.button):not(.components-button):active,
+footer.site-footer a:active {
+	color: var(--adm--footer-link-active-color);
+}

@@ -1,0 +1,56 @@
+<?php
+
+
+/*
+// DZIAŁA
+add_action('woocommerce_created_customer', function($user_id) {
+	adm_log2( "NN proba prostego maila" );
+
+    wp_mail(
+        "artur.dlugosz@outlook.com",
+        'Próba prostego maila',
+        'Użytkownik nowy Próba prostego maila');
+});
+*/
+
+
+
+add_action('woocommerce_created_customer', 'adm_notify_new_customer');
+
+function adm_notify_new_customer($user_id) {
+
+    $user = get_userdata($user_id);
+    $subject = "Nowy klient na miodolada.pl";
+    $body = "Zarejestrowano nowego klienta:\n\n";
+
+
+$ee = (is_object($user) && !empty($user->user_email) ? $user->user_email : 'noreply@twojadomena.pl');
+adm_log2($ee); 
+
+
+add_action('phpmailer_init', function($phpmailer) {
+    $phpmailer->SMTPDebug = 2;  // włącza debug SMTP
+    $phpmailer->Debugoutput = function($str, $level) {
+        adm_log3("PHPMailer debug level $level: $str");
+    };
+});
+
+
+
+try {
+    $headers = [
+        'Content-Type: text/plain; charset=UTF-8',
+    ];
+
+    $sent = wp_mail("artur.dlugosz@outlook.com", $subject, $body, $headers);
+
+    if (!$sent) {
+        adm_log2("NNNie udało się wysłać powiadomienia rejestracyjnego dla user ID $user_id");
+    }
+
+} catch (Throwable $e) {
+    adm_log2("NNBłąd przy wysyłaniu maila: " . $e->getMessage());
+}
+
+
+}

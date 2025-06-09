@@ -1,0 +1,52 @@
+/* Mniejsze odstępy między kontrolkami */
+#sub-accordion-section-adm__color_settings .customize-control {
+    margin-bottom: 8px;
+}
+
+/* Tytuł i zawartość w jednej linii */
+#sub-accordion-section-adm__color_settings .customize-control .customize-control-title {
+    display: inline-block;
+    width: 40%;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+#sub-accordion-section-adm__color_settings .customize-control .customize-control-content {
+    display: inline-block;
+    width: 55%;
+    vertical-align: middle;
+}
+
+/* Mniejsze inputy, np. textarea */
+#sub-accordion-section-adm__color_settings .customize-control textarea,
+#sub-accordion-section-adm__color_settings .customize-control input[type="text"],
+#sub-accordion-section-adm__color_settings .customize-control input[type="url"] {
+    height: auto;
+    padding: 4px;
+    font-size: 13px;
+}
+
+/* Kolor pickery — trochę mniejsze */
+#sub-accordion-section-adm__color_settings .wp-picker-container {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+
+#sub-accordion-section-adm__color_settings .customize-control .description h2 {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #222;
+    font-weight: bold;
+}
+
+#sub-accordion-section-adm__color_settings .wp-picker-container .wp-color-result-text {
+    display: none !important;
+}
+
+
+#sub-accordion-section-adm__color_settings .customize-control-color .wp-picker-container .wp-picker-holder{
+    position: absolute;
+    left: 0;
+}
