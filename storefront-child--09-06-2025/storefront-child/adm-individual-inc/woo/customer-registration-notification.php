@@ -54,6 +54,12 @@ function adm__notify_new_customer_to_admins($user_id) {
 			$allowed = true;
 		}
 	}
+	
+		if (!$allowed) {
+		adm_log2("Użytkownik ID $user_id nie posiada żadnej z dozwolonych ról. Powiadomienie NIE zostanie wysłane.");
+		return;
+	}
+
 
 	$user_email = (!empty($user->user_email) && filter_var($user->user_email, FILTER_VALIDATE_EMAIL)) 
 					? sanitize_email($user->user_email) 

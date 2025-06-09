@@ -1,4 +1,5 @@
 <?php
+$fname_log = '[' . basename(__FILE__, '.php') . '] ';
 
 
 add_filter( 'wp_new_user_notification_email', 'adm__disable_notify_for_new_zainteresowany_oferta', 10, 3 );
@@ -32,13 +33,13 @@ function adm__notify_new_customer_to_admins($user_id) {
 	];
 
 
-	if (!isset($roles_in) || !isset($roles_ex) || !isset($recipients)) adm_log2("customer-registration-notification: Błędy w rolach i odbiorcach (nie istnieją)");
-	if ( empty($roles_in) || empty($roles_ex) || empty($recipients) ) adm_log2("customer-registration-notification: Błędy w rolach i odbiorcach (są puste)");
+	if (!isset($roles_in) || !isset($roles_ex) || !isset($recipients)) adm_log2($fname_log. "Błędy w rolach i odbiorcach (nie istnieją)");
+	if ( empty($roles_in) || empty($roles_ex) || empty($recipients) ) adm_log2($fname_log. "Błędy w rolach i odbiorcach (są puste)");
 
 
 	$user = get_userdata($user_id);
 	if ( !isset($user) || !is_object($user)) {
-		adm_log2("customer-registration-notification: Nie znaleziono użytkownika o ID: $user_id");
+		adm_log2($fname_log. "Nie znaleziono użytkownika o ID: $user_id");
 		return;
 	}
 
@@ -114,7 +115,7 @@ function adm__notify_new_customer_to_admins($user_id) {
 	foreach ($recipients as $email) {
 		$sent = $mailer->send($email, $subject, $html, $headers);
 		if (!$sent) {
-			adm_log2("customer-registration-notification: Nie udało się wysłać powiadomienia rejestracyjnego:\n - user ID: $user_id\n - email: $email");
+			adm_log2($fname_log. "Nie udało się wysłać powiadomienia rejestracyjnego:\n - user ID: $user_id\n - email: $email");
 		}
 	}
 
@@ -139,19 +140,6 @@ function adm__notify_new_customer_to_customer($user_id) {
 		<p>Twoje konto w hurtowni <a href="https://miodolada.pl"><strong>miodolada.pl</strong></a> zostało pomyślnie utworzone.</p>
 		<p>Gdy uporamy się z pracą na pasiece, przygotujemy dla Ciebie ofertę hurtową.<br>Wtedy w hurtowni, po zalogowaniu się, zobaczysz ceny produktów i będzie można dokonać pierwszego zakupu.<br>Wyślemy też ofertę w formie PDF.</p>';
 
-
-	// 	if ( function_exists( 'generate_password_reset_link' ) ) {
-	// 		if( $reset_link = generate_password_reset_link($user_email) ) {
-	// 			$message_html .= '<p>Możesz już zalogować się w hurtowni. Kliknij w poniższy link, aby ustawić swoje hasło:</p>';
-	// 			$message_html .= '<p><a href="' . $reset_link . '" style="background-color:#96588a;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">Ustaw hasło</a></p>';
-	//         } else {
-	//         	adm_log2("[customer-notification-registration] Link do resetu hasła jest niepoprawny");
-	//         }
-	// 	}else{
-	// 		adm_log2("[customer-notification-registration] Brakuje funkcji generowania linku do resetu hasła");
-	// 	}
-
-
 	$message_html .= '<p>Dziękujemy słodko :) </p>';
 
 	$mailer = WC()->mailer();
@@ -164,7 +152,7 @@ function adm__notify_new_customer_to_customer($user_id) {
 	$sent = $mailer->send($user_email, $subject, $wrapped_message, $headers);
 
 		if (!$sent) {
-			adm_log2("[customer-registration-notification]: Nie udało się wysłać powiadomienia rejestracyjnego do klienta:\n - user ID: $user_id\n - email: $user_email");
+			adm_log2($fname_log. "Nie udało się wysłać powiadomienia rejestracyjnego do klienta:\n - user ID: $user_id\n - email: $user_email");
 
 			wp_mail(
 				get_option('admin_email'),
@@ -173,7 +161,7 @@ function adm__notify_new_customer_to_customer($user_id) {
 				['Content-Type: text/plain; charset=UTF-8']
 			);
 
-	``		adm_log2("[customer-registration-notification]: Błąd wysyłki e-maila do klienta: $user_email");
+	``		adm_log2($fname_log. "Błąd wysyłki e-maila do klienta: $user_email");
 		}
 
 

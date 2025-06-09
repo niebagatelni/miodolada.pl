@@ -8,10 +8,6 @@ $fname_log = '[' . basename(__FILE__, '.php') . '] ';
 // Sprawdzenie dostępu klienta
 function czy_klient_moze_kupowac() {
     $user = wp_get_current_user();
-    if (!$user || empty($user->roles)) {
-        if (function_exists('adm_log3')) adm_log3($fname_log.'Brak ról lub obiektu użytkownika w czy_klient_moze_kupowac()');
-        return false;
-    }
     return !in_array('zainteresowany_oferta', (array) $user->roles);
 }
 
@@ -106,11 +102,7 @@ add_shortcode('adm_empty_basket', function() {
 
 // 1. BLOKOWANIE KUPOWANIA - podstawowe zabezpieczenie
 add_filter('woocommerce_is_purchasable', function($can_purchase, $product) {
-    if (!is_user_logged_in() || !czy_klient_moze_kupowac()) {
-        if (function_exists('adm_log3')) adm_log3($fname_log. 'Blokada zakupu produktu ID: ' . $product->get_id());
-        return false;
-    }
-    return $can_purchase;
+    return (is_user_logged_in() && czy_klient_moze_kupowac()) ? $can_purchase : false;
 }, 10, 2);
 
 

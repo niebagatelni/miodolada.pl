@@ -24,7 +24,6 @@ add_action('init', function() {
     );
     $users = get_users($args);
     if (empty($users)) {
-        if (function_exists('adm_log3')) adm_log3($fname_log. 'Nieprawidłowy lub już wykorzystany link dla user_id: ' . $user_id);
         wp_die('Nieprawidłowy lub już wykorzystany link.');
     }
     $user_id = $users[0];
@@ -32,7 +31,6 @@ add_action('init', function() {
     // Sprawdź datę wygaśnięcia tokena
     $expires = get_user_meta($user_id, '_role_change_token_expires', true);
     if (!$expires || time() > intval($expires)) {
-        if (function_exists('adm_log3')) adm_log3($fname_log. 'Link wygasł dla user_id: ' . $user_id);
         // Usuwamy token, nawet jeśli wygasł
         delete_user_meta($user_id, '_role_change_token');
         delete_user_meta($user_id, '_role_change_token_expires');

@@ -3,6 +3,7 @@
  * Kompletne zabezpieczenie zakupów dla niezalogowanych i roli "zainteresowany_oferta"
  */
  
+$fname_log = '[' . basename(__FILE__, '.php') . '] ';
 
 // Sprawdzenie dostępu klienta
 function czy_klient_moze_kupowac() {
@@ -187,11 +188,12 @@ add_action('woocommerce_checkout_init', function() {
     }
 
     if (!is_user_logged_in()) {
+        if (function_exists('adm_log3')) adm_log3($fname_log. 'Próba wejścia na checkout bez logowania');
         wp_die('Brak uprawnień do realizacji zamówienia. <a href="' . get_permalink(wc_get_page_id('myaccount')) . '">Zaloguj się</a>');
     } elseif (!czy_klient_moze_kupowac()) {
+        if (function_exists('adm_log3')) adm_log3($fname_log. 'Próba wejścia na checkout przez zainteresowany_oferta');
         wp_die('Brak uprawnień do realizacji zamówienia. ' . get_offer_pending_message());
     }
-
 });
 
 

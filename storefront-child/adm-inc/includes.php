@@ -56,13 +56,16 @@ function adm_custom_menu()
 
 
 function adm__keydown_shortcuts($hook) {
-    wp_enqueue_script(
-        'adm--keydown-shortcuts',
-        ADM_THEME_URI . 'adm-inc/js/keydown-shortcuts.js',
-        [],
-        filemtime(ADM_THEME_DIR . 'adm-inc/js/keydown-shortcuts.js'),
-        true
-    );
+    $path = 'adm-inc/js/keydown-shortcuts.js';
+    if (file_exists(ADM_THEME_DIR . $path)){
+        wp_enqueue_script(
+            'adm--keydown-shortcuts',
+            ADM_THEME_URI . $path,
+            [],
+            filemtime(),
+            true
+        );
+    }
 }
 add_action('admin_enqueue_scripts', 'adm__keydown_shortcuts');
 
