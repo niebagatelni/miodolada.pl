@@ -1,4 +1,7 @@
 <?php
+$fname_log = "[.]";
+$ml_log_actions = 1; // Włącz logowanie działań MailerLite
+
 
 
 function utworz_role_zainteresowany_oferta() {
