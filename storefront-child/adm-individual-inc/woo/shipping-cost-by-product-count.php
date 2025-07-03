@@ -1,6 +1,8 @@
+<?php
 
+// ---------------------------------------------------------------
 // Wysyłka liczona po liczbie produktow
-// 
+ 
 
 // 1. Dodaj pole "Koszt dostawy za sztukę w edycji produktu (panel admina)
 add_action('woocommerce_product_options_general_product_data', function () {

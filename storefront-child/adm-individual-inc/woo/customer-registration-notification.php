@@ -1,9 +1,7 @@
 <?php
-$fname_log = '[' . basename(__FILE__, '.php') . '] ';
 
 
 add_filter( 'wp_new_user_notification_email', 'adm__disable_notify_for_new_zainteresowany_oferta', 10, 3 );
-
 function adm__disable_notify_for_new_zainteresowany_oferta( $email, $user, $blogname ) {
     if ( in_array( 'zainteresowany_oferta', (array) $user->roles ) ) {
         // Zwraca pustą zawartość, aby zablokować e-mail
@@ -19,27 +17,27 @@ function adm__disable_notify_for_new_zainteresowany_oferta( $email, $user, $blog
 }
 
 
-add_action('woocommerce_created_customer', 'adm__notify_new_customer_to_admins');
+// Wysyłąnie maila do administratora po rejestracji klienta
 
-function adm__notify_new_customer_to_admins($user_id) {
+add_action('woocommerce_created_customer', 'adm__notify_new_customer');
+function adm__notify_new_customer($user_id) {
 
 	$roles_in = array('zainteresowany_oferta');
 	$roles_ex = array('shop_manager', 'administrator');
 
 	$recipients = [
 	    //'sklep@pachniczowka.pl',
-	    'artur.dlugosz@pachniczowka.pl',
 	    'adnauczyciel@gmail.com'
 	];
 
 
-	if (!isset($roles_in) || !isset($roles_ex) || !isset($recipients)) adm_log2($fname_log. "Błędy w rolach i odbiorcach (nie istnieją)");
-	if ( empty($roles_in) || empty($roles_ex) || empty($recipients) ) adm_log2($fname_log. "Błędy w rolach i odbiorcach (są puste)");
+	if (!isset($roles_in) || !isset($roles_ex) || !isset($recipients)) adm_log2("Błędy w rolach i odbiorcach (nie istnieją)");
+	if ( empty($roles_in) || empty($roles_ex) || empty($recipients) ) adm_log2("Błędy w rolach i odbiorcach (są puste)");
 
 
 	$user = get_userdata($user_id);
 	if ( !isset($user) || !is_object($user)) {
-		adm_log2($fname_log. "Nie znaleziono użytkownika o ID: $user_id");
+		adm_log2("Nie znaleziono użytkownika o ID: $user_id");
 		return;
 	}
 
@@ -55,12 +53,6 @@ function adm__notify_new_customer_to_admins($user_id) {
 		}
 	}
 
-	if (!$allowed) {
-		adm_log2("Użytkownik ID $user_id nie posiada żadnej z dozwolonych ról. Powiadomienie NIE zostanie wysłane.");
-		return;
-	}
-
-
 	$user_email = (!empty($user->user_email) && filter_var($user->user_email, FILTER_VALIDATE_EMAIL)) 
 					? sanitize_email($user->user_email) 
 					: 'artur.dlugosz@pachniczowka.pl';
@@ -73,7 +65,6 @@ function adm__notify_new_customer_to_admins($user_id) {
 
     // ----------------------------------------
     // Budowa treści maila do admina
-
 	$reply_email = $user_email;
 
 	$subject = 'Nowy klient zarejestrowany w sklepie';
@@ -89,7 +80,8 @@ function adm__notify_new_customer_to_admins($user_id) {
 		"Telefon: " . get_user_meta($user_id, 'billing_phone', true)
 	];
 
-	// --- GENEROWANIE LINKU DO ZMIANY ROLI ---
+
+	// Gneerowanie linku do zmiany roli
 	$token = wp_generate_password(20, false);
 	$expires = time() + 3 * 24 * 3600; // 3 dni
 	update_user_meta($user_id, '_role_change_token', $token);
@@ -115,26 +107,19 @@ function adm__notify_new_customer_to_admins($user_id) {
 	foreach ($recipients as $email) {
 		$sent = $mailer->send($email, $subject, $html, $headers);
 		if (!$sent) {
-			adm_log2($fname_log. "Nie udało się wysłać powiadomienia rejestracyjnego:\n - user ID: $user_id\n - email: $email");
+			adm_log2("Nie udało się wysłać powiadomienia rejestracyjnego:\n - user ID: $user_id\n - email: $email");
 		}
 	}
 
-} // <-- function adm_notify_new_customer($user_id)
 
 
-
-
-add_action('woocommerce_created_customer', 'adm__notify_new_customer_to_customer');
-function adm__notify_new_customer_to_customer($user_id) {
+	
 
 	// ----------------------------------------
 	// Budowa treści maila do klienta
 
 	$reply_email = 'sklep@pachniczowka.pl';
-
-
 	$subject = 'Twoje konto zostało utworzone';
-
 	$message_html = '
 		<p>Witaj <strong>' . $user_name. '</strong>,</p>
 		<p>Twoje konto w hurtowni <a href="https://miodolada.pl"><strong>miodolada.pl</strong></a> zostało pomyślnie utworzone.</p>
@@ -152,7 +137,7 @@ function adm__notify_new_customer_to_customer($user_id) {
 	$sent = $mailer->send($user_email, $subject, $wrapped_message, $headers);
 
 		if (!$sent) {
-			adm_log2($fname_log. "Nie udało się wysłać powiadomienia rejestracyjnego do klienta:\n - user ID: $user_id\n - email: $user_email");
+			adm_log2("Nie udało się wysłać powiadomienia rejestracyjnego do klienta:\n - user ID: $user_id\n - email: $user_email");
 
 			wp_mail(
 				get_option('admin_email'),
@@ -161,11 +146,92 @@ function adm__notify_new_customer_to_customer($user_id) {
 				['Content-Type: text/plain; charset=UTF-8']
 			);
 
-	``		adm_log2($fname_log. "Błąd wysyłki e-maila do klienta: $user_email");
+			adm_log2("Błąd wysyłki e-maila do klienta: $user_email");
 		}
 
 
 
 
-} // <-- adm__notify_new_customer_to_customer
+} // <-- adm__notify_new_customer
 
+
+
+// Wysyłka maila do klienta po zmianie roli na klient_hurtowy
+add_action('adm_role_changed_to_klient_hurtowy', 'adm__notify_customer_role_activated', 10, 1);
+function adm__notify_customer_role_activated($user_id) {
+    $user = get_userdata($user_id);
+    if (!$user || !is_object($user)) return;
+    $user_email = (!empty($user->user_email) && filter_var($user->user_email, FILTER_VALIDATE_EMAIL))
+        ? sanitize_email($user->user_email)
+        : '';
+    if (empty($user_email)) return;
+    $user_name = !empty($user->first_name) ? esc_html($user->first_name) : '';
+    $reply_email = 'sklep@pachniczowka.pl';
+    $subject = 'Twoje konto zostało aktywowane';
+    $message_html = '
+        <p>Witaj <strong>' . $user_name. '</strong>,</p>
+        <p>Twoje konto w hurtowni <a href="https://miodolada.pl"><strong>miodolada.pl</strong></a> zostało aktywowane.<br>
+        Masz już dostęp do cen hurtowych i możesz dokonać pierwszego zakupu.</p>';
+    
+		if (function_exists('generate_password_reset_link')) {
+        	$reset_url = generate_password_reset_link($user_email);
+        	if ($reset_url) {
+        	    $message_html .= '<p>Jeśli chcesz ustawić lub zmienić swoje hasło, kliknij tutaj: <a href="' . esc_url($reset_url) . '">' . esc_html($reset_url) . '</a></p>';
+        	}
+    	}else{
+			adm_log2("Nie udało się wygenerować linku do resetu hasła dla użytkownika: $user_email (funkcja nie istnieje)");
+		}
+
+    $message_html .= '<p>Dziękujemy słodko :) </p>';
+    $mailer = WC()->mailer();
+    $wrapped_message = $mailer->wrap_message($subject, $message_html);
+    $headers = [
+        'Content-Type: text/html; charset=UTF-8',
+        'Reply-To: ' . $reply_email
+    ];
+    $sent = $mailer->send($user_email, $subject, $wrapped_message, $headers);
+    if (!$sent && function_exists('adm_log2')) {
+        adm_log2("Nie udało się wysłać powiadomienia o aktywacji konta do klienta: $user_email");
+    }
+}
+
+
+
+/*
+
+// Automatyczna wysyłka maila do klienta po każdej zmianie roli na klient_hurtowy
+// POPRAW żeby nie było dubli
+
+add_action('set_user_role', function($user_id, $new_role, $old_roles) {
+    if ($new_role === 'klient_hurtowy') {
+        adm__notify_customer_role_activated($user_id);
+    }
+}, 10, 3);
+
+add_action('user_role_changed', function($user_id, $role, $old_roles) {
+    if ($role === 'klient_hurtowy') {
+        adm__notify_customer_role_activated($user_id);
+    }
+}, 10, 3);
+
+add_action('profile_update', function($user_id, $old_user_data) {
+    $user = get_userdata($user_id);
+    if (in_array('klient_hurtowy', (array)$user->roles) && !in_array('klient_hurtowy', (array)$old_user_data->roles)) {
+        adm__notify_customer_role_activated($user_id);
+    }
+}, 10, 2);
+
+add_action('add_user_role', function($user_id, $role) {
+    if ($role === 'klient_hurtowy') {
+        adm__notify_customer_role_activated($user_id);
+    }
+}, 10, 2);
+
+add_action('remove_user_role', function($user_id, $role) {
+    // Nie wysyłamy maila przy usunięciu roli, tylko przy dodaniu.
+    // Ten hook zostawiamy pusty lub do ewentualnej rozbudowy.
+}, 10, 2);
+
+
+
+*/

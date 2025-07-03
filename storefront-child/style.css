@@ -84,11 +84,13 @@ body{
 	text-decoration: none;
 }
 
+a.button,
 .wp-block-button,
 .wp-element-button{
 	border: 1px solid #c0bcbc;						   
-    	border-radius: 4px;
-    	line-height: 1;
+	border-radius: 4px;
+    line-height: 1;
+    padding: 0.4em 1em;
 }
 
 .hentry .entry-content a{
@@ -169,7 +171,7 @@ header .col-full{
 	position: relative;	
 }
 
-.home .entry-content section > *,
+.home .entry-content section > *{
 	width: 90%;
 	margin: auto;
 }
@@ -267,7 +269,7 @@ footer.site-footer .widget{
 
 .site-footer .widget_recent_entries ul li::before,
 .site-footer .widget_pages ul li::before,
-.widget_nav_menu ul li::before{
+.widget_nav_menu ul li::before
 {
 	display:none;
 }
@@ -281,8 +283,10 @@ footer.site-footer .widget{
 .site-footer .widget_links ul li,
 .site-footer .widget_product_categories ul li,
 .site-footer .widget_layered_nav ul li,
-foote.site-footerr .widget_layered_nav_filters ul li,
-.site-footer .widget_recent_entries ul li{
+footer.site-footer .widget_layered_nav_filters ul li,
+.site-footer .widget_recent_entries ul li,
+.site-footer .widget_layered_nav_filters ul li 
+{
 	padding-left: 0;
 	margin: auto;
 	margin-bottom: 5px;
@@ -305,3 +309,23 @@ foote.site-footerr .widget_layered_nav_filters ul li,
 
 
 
+.adm-success-message{
+    color	: green;
+    padding	: 10px;
+    border	: 1px solid green;
+    box-shadow	: 1px 1px 1px gray;
+    margin	: 1em auto;
+    font-weight	: bold;
+    font-size	: 110%;
+}
+
+
+.adm-failure-message{
+    color	: red;
+    padding	: 10px;
+    border	: 1px solid red;
+    box-shadow	: 1px 1px 1px gray;
+    margin		: 1em auto;
+    font-weight	: bold;
+    font-size	: 110%;
+}

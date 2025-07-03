@@ -1,9 +1,9 @@
 <?php
-$fname_log = "[.]";
 $ml_log_actions = 1; // Włącz logowanie działań MailerLite
+$fname_log = "[.]";
 
 
-
+ 
 function utworz_role_zainteresowany_oferta() {
     if (!get_role('zainteresowany_oferta')) {
         $customer = get_role('customer');
@@ -20,6 +20,7 @@ function utworz_role_zainteresowany_oferta() {
             );
         }
         add_role('zainteresowany_oferta', 'Zainteresowany ofertą', $customer_capabilities);
+        add_role('klient_hurtowy', 'Klient hurtowy', $customer_capabilities);
 
     }
 }
@@ -30,21 +31,13 @@ add_action('init', 'utworz_role_zainteresowany_oferta', 20);
 
 if ( !function_exists( 'generate_password_reset_link' ) ) {
 function generate_password_reset_link($email) {
-    if ( ! email_exists( $email ) ) {
-        return false;
-    }
+    if ( ! email_exists( $email ) ) { return false; }
 
     $user = get_user_by( 'email', $email );
-
-    if ( ! $user || is_wp_error( $user ) ) {
-        return false;
-    }
+    if ( ! $user || is_wp_error( $user ) ) { return false; }
 
     $reset_key = get_password_reset_key( $user );
-
-    if ( is_wp_error( $reset_key ) ) {
-        return false;
-    }
+    if ( is_wp_error( $reset_key ) ) { return false; }
 
     // Budujemy pełny link resetu hasła
        $reset_url = add_query_arg(
@@ -54,7 +47,6 @@ function generate_password_reset_link($email) {
             ),
             wc_get_endpoint_url( 'lost-password', '', wc_get_page_permalink( 'myaccount' ) )
         );
-
     	return $reset_url;
 }}
 
@@ -69,8 +61,9 @@ add_action('wp_print_scripts', 'allow_low_password_woocommerce', 100);
 
 
 
+
 if( class_exists('WooCommerce') ){
-	adm_include_in_theme('/adm-individual-inc/woo/registration-custom-fields-woocommerce.php');
+	adm_include_in_theme('/adm-individual-inc/woo/customer-registration-custom-fields.php');
 		// adm_include_in_theme('/adm-individual-inc/woo/registration-custom-fields-adminpanel.php');
 		// adm_include_in_theme('/adm-individual-inc/woo/registration-custom-fields-account-dashboard.php');
 		// adm_include_in_theme('/adm-individual-inc/woo/registration-custom-email-notifications.php');
@@ -85,12 +78,20 @@ if( class_exists('WooCommerce') ){
 	adm_include_in_theme('/adm-individual-inc/woo/customer-registration-role-link-handler.php');
 	adm_include_in_theme('/adm-individual-inc/woo/basket-checkout-disable.php');
 	adm_include_in_theme('/adm-individual-inc/woo/shipping-cost-by-product-count.php');
+	adm_include_in_theme('/adm-individual-inc/woo/user_meta.php');
+	adm_include_in_theme('/adm-individual-inc/woo/miodolada-pallet.php');
+
+
 
 }
 
 
 
 
+
+add_action( 'after_setup_theme', function() {
+    remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40 );
+});
 
 
 /*
@@ -108,8 +109,6 @@ color-settings-output 	: 100
 
 
 
-
-//*/
 
 
 

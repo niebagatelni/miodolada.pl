@@ -1,5 +1,6 @@
 <?php
 
+$fname_log = "[.]";
 
 
 
@@ -62,7 +63,7 @@ function adm__keydown_shortcuts($hook) {
             'adm--keydown-shortcuts',
             ADM_THEME_URI . $path,
             [],
-            filemtime(),
+            filemtime(ADM_THEME_DIR . $path),
             true
         );
     }

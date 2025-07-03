@@ -1,3 +1,4 @@
+
 .woocommerce-breadcrumb{
 	text-align: left;
 }
@@ -16,3 +17,17 @@
 	background-color: #3d9cd2 !important;
 	color: #fff !important;
 }
+
+
+
+form.woocommerce-ResetPassword,
+form.lost_reset_password{
+    display : grid;
+    gap     : 0.6em;
+}
+
+
+.wc-block-checkout__add-note{
+    margin-top      : 5em;
+    margin-bottom   : 5em;
+} 

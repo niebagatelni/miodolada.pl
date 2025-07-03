@@ -1,5 +1,9 @@
+<?php
+
 // Funkcja pomocnicza do wywołań API MailerLite
 function ml_call_api($url, $type = 'POST', $data = null) {
+    adm_log3("ML wywołany z ". $type .", url: ". $url);
+
     if (!defined('ML_API_KEY')) define('ML_API_KEY', 'dc52e84d9ab80759d811ac3fd3aec497');
     $curl_data = array(
         CURLOPT_URL => $url,
@@ -24,21 +28,17 @@ function ml_call_api($url, $type = 'POST', $data = null) {
     $response_error = curl_error($curl);
     $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     curl_close($curl);
-    if ($http_status === 200 && !$response_error) {
-        if (function_exists('adm_log3')) adm_log3('Sukces: ' . $response);
-    } else {
-        if ($http_status !== 200 && function_exists('adm_log3')) {
-            adm_log3('Problem z cURL Mailerlite. HTTP_STATUS: ' . $http_status);
+    
+        if ($http_status !== 200 && $http_status !== 204 && function_exists('adm_log3')) {
+            adm_log3('Błąd cURL ML |  HTTP_STATUS: ' . $http_status . " | Response: ". $response . "Response errors: " . $response_error);
         }
         if ($response_error && function_exists('adm_log3')) {
-            adm_log3('Błąd cURL Mailerlite: '. $response_error);
+            adm_log3('Błąd cURL ML |  Response Errors: '. $response_error);
         }
-    }
 }
-<?php
 
-add_action('user_register', 'ml_add_or_update_subscriber');
-add_action('profile_update', 'ml_add_or_update_subscriber', 10, 2);
+
+
 
 function ml_add_or_update_subscriber($user_id, $old_user_data = null) {
     $user = get_userdata($user_id);
@@ -46,12 +46,12 @@ function ml_add_or_update_subscriber($user_id, $old_user_data = null) {
         return;
     }
 
-    if ( !in_array('customer', (array)$user->roles, true) && !in_array('zainteresowany_oferta', (array)$user->roles, true)) {
+    if ( !in_array('klient_hurtowy', (array)$user->roles, true) && !in_array('zainteresowany_oferta', (array)$user->roles, true)) {
         return;
     }
 
     $zainteresowany_group   = "112989751";
-    $customer_group         = '112998441'; 
+    $hurtowy_group         = '112998441'; 
 
 
     // Dane do wysyłki
@@ -78,11 +78,8 @@ function ml_add_or_update_subscriber($user_id, $old_user_data = null) {
             'woo_last_login_date' => $user->data_ost_wizyty_w_sklepie ?? '',
         ]
     ];
-    $roles = $user->roles ?? array();
-
 
     if (empty($data['email'])) return;
-
 
 
     $ml_jdata = json_encode($data, JSON_UNESCAPED_UNICODE);
@@ -96,17 +93,39 @@ function ml_add_or_update_subscriber($user_id, $old_user_data = null) {
     }
 
     // Dodaj do odpowiedniej grupy
-    if (in_array('customer', $roles)) {
-        $url = 'https://api.mailerlite.com/api/v2/groups/' . $customer_group . '/subscribers';
-        ml_call_api($url, 'POST', $ml_jdata);
-        // Usuń z grupy zainteresowany_oferta
-        $url_del = 'https://api.mailerlite.com/api/v2/groups/' . $zainteresowany_group . '/subscribers/' . $data['email'];
-        ml_call_api($url_del, 'DELETE');
-    } elseif (in_array('zainteresowany_oferta', $roles)) {
+
+    $roles = $user->roles ?? array();
+    if (in_array('zainteresowany_oferta', $roles)) {
         $url = 'https://api.mailerlite.com/api/v2/groups/' . $zainteresowany_group . '/subscribers';
         ml_call_api($url, 'POST', $ml_jdata);
+
+    }elseif (in_array('klient_hurtowy', $roles)) {
+        // Dodaj do grupy "Klient hurtowy"
+        $url = 'https://api.mailerlite.com/api/v2/groups/' . $hurtowy_group . '/subscribers';
+        ml_call_api($url, 'POST', $ml_jdata);
+
+        // Usuń z grupy zainteresowany_oferta TYLKO jeśli zmieniła się rola na klient_hurtowy
+        if (
+            $old_user_data && isset($old_user_data->roles)
+            && !empty(array_diff((array)$user->roles, (array)$old_user_data->roles))
+            && in_array('klient_hurtowy', (array)$user->roles, true)
+        ) {
+            $url_del = 'https://api.mailerlite.com/api/v2/groups/' . $zainteresowany_group . '/subscribers/' . $data['email'];
+            ml_call_api($url_del, 'DELETE');
+        }
     }
 
 
-
 } // <-- function ml_add_or_update_subscriber
+
+
+
+add_action('user_register', 'ml_add_or_update_subscriber');
+add_action('profile_update', 'ml_add_or_update_subscriber', 10, 2);
+add_action('edit_user_profile_update', 'ml_add_or_update_subscriber', 10, 2);
+add_action('personal_options_update', 'ml_add_or_update_subscriber', 10, 2);
+add_action('set_user_role', 'ml_add_or_update_subscriber', 10, 2);
+add_action('add_user_role', 'ml_add_or_update_subscriber', 10, 2);
+add_action('remove_user_role', 'ml_add_or_update_subscriber', 10, 2);
+add_action('woocommerce_update_customer', 'ml_add_or_update_subscriber', 10, 1);
+add_action('woocommerce_save_account_details', 'ml_add_or_update_subscriber', 10, 1);

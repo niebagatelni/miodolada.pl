@@ -3,11 +3,14 @@
  * Kompletne zabezpieczenie zakupów dla niezalogowanych i roli "zainteresowany_oferta"
  */
  
-$fname_log = '[' . basename(__FILE__, '.php') . '] ';
 
 // Sprawdzenie dostępu klienta
 function czy_klient_moze_kupowac() {
     $user = wp_get_current_user();
+    if (!$user || empty($user->roles)) {
+        if (function_exists('adm_log3')) adm_log3('Brak ról lub obiektu użytkownika w czy_klient_moze_kupowac()');
+        return false;
+    }
     return !in_array('zainteresowany_oferta', (array) $user->roles);
 }
 
@@ -33,10 +36,10 @@ function login_register_wp_buttons() {
 function login_register_buttons($class = 'button', $style = 'inline') {
     $my_account_url = get_permalink( wc_get_page_id( 'myaccount' ) );
 
-	$html  =  '<p><a href="' . esc_url($my_account_url) . '" class="' . esc_attr($class) . ' login-btn">Zaloguj się</a>';
-	$html .=  '<a href="' . esc_url($my_account_url) . '#customer_registration" class="' . esc_attr($class) . ' register-btn">Zarejestruj się</a></p>';
+    $html  =  '<p><a href="' . esc_url($my_account_url) . '" class="' . esc_attr($class) . ' login-btn">Zaloguj się</a>';
+    $html .=  '<a href="' . esc_url($my_account_url) . '#customer_registration" class="' . esc_attr($class) . ' register-btn">Zarejestruj się</a></p>';
 
-	return $html;
+    return $html;
 }
 
 
@@ -120,12 +123,13 @@ add_filter('woocommerce_is_purchasable', function($can_purchase, $product) {
 // }, 10, 2);
 
 
+
 // 3. STRONA PRODUKTU - zamiana sekcji dodawania do koszyka
-// add_action('woocommerce_single_product_summary', function() {
-//     if ( !czy_klient_moze_kupowac()) {
-//         remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
-//     }
-// }, 1);
+add_action('woocommerce_single_product_summary', function() {
+    if ( !czy_klient_moze_kupowac()) {
+        remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
+    }
+}, 1);
 
 add_action('woocommerce_single_product_summary', function() {
     if (!is_user_logged_in()) {
@@ -188,10 +192,10 @@ add_action('woocommerce_checkout_init', function() {
     }
 
     if (!is_user_logged_in()) {
-        if (function_exists('adm_log3')) adm_log3($fname_log. 'Próba wejścia na checkout bez logowania');
+        if (function_exists('adm_log3')) adm_log3( 'Próba wejścia na checkout bez logowania');
         wp_die('Brak uprawnień do realizacji zamówienia. <a href="' . get_permalink(wc_get_page_id('myaccount')) . '">Zaloguj się</a>');
     } elseif (!czy_klient_moze_kupowac()) {
-        if (function_exists('adm_log3')) adm_log3($fname_log. 'Próba wejścia na checkout przez zainteresowany_oferta');
+        if (function_exists('adm_log3')) adm_log3( 'Próba wejścia na checkout przez zainteresowany_oferta');
         wp_die('Brak uprawnień do realizacji zamówienia. ' . get_offer_pending_message());
     }
 });
@@ -324,6 +328,30 @@ add_action('init', function() {
 });
 
 //*/
+
+
+
+
+/*
+add_filter( 'woocommerce_is_purchasable', 'ukryj_przycisk_dodaj_dla_zestawu', 10, 2 );
+function ukryj_przycisk_dodaj_dla_zestawu( $purchasable, $product ) {
+    if ( has_term( 'ukryty--tylko-do-zestawu', 'product_tag', $product->get_id() ) ) {
+        return false;
+    }
+    return $purchasable;
+}
+
+add_filter( 'woocommerce_get_price_html', 'ukryj_cene_dla_tylko_do_zestawu', 10, 2 );
+function ukryj_cene_dla_tylko_do_zestawu( $price, $product ) {
+    if ( has_term( 'ukryty--tylko-do-zestawu', 'product_tag', $product->get_id() ) ) {
+        return '';
+    }
+    return $price;
+}
+*/
+
+
+
 
 
 

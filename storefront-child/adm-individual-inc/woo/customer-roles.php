@@ -1,5 +1,7 @@
 
 <?php
+
+/*
 // Dodaj AJAX handler
 add_action('wp_ajax_adm_change_user_role', function() {
     if (!current_user_can('manage_options')) wp_send_json_error('Brak uprawnień');
@@ -11,10 +13,10 @@ add_action('wp_ajax_adm_change_user_role', function() {
     $user->set_role($role);
     wp_send_json_success();
 });
+*/
 
 
-
-
+/*
 function ml_change_group_to_customer($email) {
     if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) return;
 
@@ -54,16 +56,16 @@ function ml_change_group_to_customer($email) {
     curl_close($curl);
 }
 
-// Wywołaj funkcję po zmianie roli na 'customer'
+// Wywołaj funkcję po zmianie roli na 'klient_hurtowy'
 add_action('set_user_role', function($user_id, $new_role, $old_roles) {
-    if ($new_role === 'customer') {
+    if ($new_role === 'klient_hurtowy') {
         $user = get_userdata($user_id);
         if ($user && !empty($user->user_email)) {
             ml_change_group_to_customer($user->user_email);
         }
     }
 }, 10, 3);
-
+*/
 
 
 // Dodaj JS globalnie w panelu admina, obsługa SPA WooCommerce Admin

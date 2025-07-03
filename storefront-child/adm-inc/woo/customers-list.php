@@ -151,7 +151,7 @@ function adm_handle_update_user_data() {
 }
 
 function adm_render_edit_customers_page() {
-    $allowed_roles = ['subscriber', 'customer', 'zainteresowany_oferta'];
+    $allowed_roles = ['subscriber', 'klient_hurtowy', 'zainteresowany_oferta'];
     
     $args = [
         'role__in' => $allowed_roles,
@@ -173,7 +173,7 @@ function adm_render_edit_customers_page() {
     
     $display_roles = [
         'subscriber' => 'Subskrybent',
-        'customer' => 'Klient', 
+        'klient_hurtowy' => 'Klient hurtowy', 
         'zainteresowany_oferta' => 'Zainteresowany ofertą'
     ];
     
@@ -191,6 +191,7 @@ function adm_render_edit_customers_page() {
             <th>Suma wydatków</th>
             <th>Ostatnio aktywny</th>
             <th>Data rejestracji</th>
+            <th>Edycja</th>
         </tr>
     </thead>
     <tbody>';
@@ -249,9 +250,17 @@ function adm_render_edit_customers_page() {
         echo '<td class="adm-readonly">' . wc_price($total_spent) . '</td>';
         echo '<td class="adm-readonly">' . esc_html($last_active) . '</td>';
         echo '<td class="adm-readonly">' . esc_html($registration_date) . '</td>';
+        echo '<td class="adm-readonly">'
+            . '<a href="' . admin_url('user-edit.php?user_id=' . $user->ID) . '" class="button button-small" target="_blank">Edycja</a>'
+            . '</td>';
         echo '</tr>';
+
+       // print_r($user);
+       // echo "<BR>";
     }
     echo '</tbody></table>';
+
+
 
     ?>
     <style>
@@ -525,7 +534,7 @@ function adm_render_edit_customers_page() {
             // Obsługa klawiatury tylko podczas edycji (focus na input/select)
             row.querySelectorAll('input, select').forEach(function(input) {
                 input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && e.ctrlKey) {
+                    if (e.key === 'Enter') {
                         e.preventDefault();
                         saveRowEdit(row, userId, originalData);
                     } else if (e.key === 'Escape') {

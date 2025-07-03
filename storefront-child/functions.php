@@ -1,10 +1,7 @@
 <?php
 
-
 //echo $undefined_variable;
 // trigger_error("Test błędu do logu w pliku function.php", E_USER_WARNING); // test wp-log można umieścićw function.php
-
-
 
 if ( ! function_exists( 'define_const' ) ) {
 function define_const($name, $value) {
@@ -12,7 +9,7 @@ function define_const($name, $value) {
         define( $name, $value );
     }
 }
-
+}
 
 define_const('ADM_THEME_DIR', get_stylesheet_directory()."/");
 define_const('ADM_THEME_URI', get_stylesheet_directory_uri()."/");
@@ -30,6 +27,7 @@ add_action( 'wp', 'ql_remove_credits_storefront' );
 function  ql_remove_credits_storefront() {
    remove_action( 'storefront_footer', 'storefront_credit', 20 );
 }
+
 
 
 if ( ! function_exists( 'adm__get_wp_error' ) ) {
@@ -52,6 +50,43 @@ if ( ! function_exists( 'adm__get_wp_error' ) ) {
 
 
 
+
+
+/*
+
+// Uniwersalny hook po każdej zmianie danych użytkownika (WooCommerce + WordPress)
+
+if (!function_exists('adm_user_data_changed_trigger')) {
+function adm_user_data_changed_trigger($user_id, $old_user_data = null) {
+    if (empty($user_id) || !get_userdata($user_id)) {
+        // Nie ma takiego użytkownika, nie wykonuj nic
+        return;
+    }
+    //do_action('adm_user_data_changed', $user_id, $old_user_data);
+
+    if (!function_exists('')) {
+        
+    }
+
+}}
+
+add_action('user_register', 'adm_user_data_changed_trigger', 10, 1);
+add_action('profile_update', 'adm_user_data_changed_trigger', 10, 2);
+add_action('edit_user_profile_update', 'adm_user_data_changed_trigger', 10, 2);
+add_action('personal_options_update', 'adm_user_data_changed_trigger', 10, 2);
+add_action('set_user_role', 'adm_user_data_changed_trigger', 10, 2);
+add_action('add_user_role', 'adm_user_data_changed_trigger', 10, 2);
+add_action('remove_user_role', 'adm_user_data_changed_trigger', 10, 2);
+add_action('woocommerce_update_customer', 'adm_user_data_changed_trigger', 10, 1);
+add_action('woocommerce_save_account_details', 'adm_user_data_changed_trigger', 10, 1);
+
+
+
+*/
+
+
+
+
 // Załaduj style motywu nadrzędnego
 add_action('wp_enqueue_scripts', function() {
     wp_enqueue_style(
@@ -62,6 +97,28 @@ add_action('wp_enqueue_scripts', function() {
         'all'
     );
 }, 10);
+
+
+
+
+$rr = get_stylesheet_directory() . '/adm-inc/includes.php';
+if (file_exists($rr)) {
+	require_once $rr;
+}
+
+
+
+$rr = get_stylesheet_directory() . '/adm-individual-inc/includes.php';
+if (file_exists($rr)) {
+	require_once $rr;
+}
+
+
+// Czy treści blogowe ale nie na głównej stronie
+function adm_is_blog_context() {
+	return ( is_home() || is_archive() || is_category() || is_tag() || is_singular('post') ) && ! is_front_page();
+}
+
 
 
 
@@ -96,23 +153,6 @@ add_action('wp_enqueue_scripts', function () {
             'all'
         );
     }
-}, 20);
+}, 100);
 
 
-$rr = get_stylesheet_directory() . '/adm-inc/includes.php';
-if (file_exists($rr)) {
-	require_once $rr;
-}
-
-
-
-$rr = get_stylesheet_directory() . '/adm-individual-inc/includes.php';
-if (file_exists($rr)) {
-	require_once $rr;
-}
-
-
-// Czy treści blogowe ale nie na głównej stronie
-function adm_is_blog_context() {
-	return ( is_home() || is_archive() || is_category() || is_tag() || is_singular('post') ) && ! is_front_page();
-}
