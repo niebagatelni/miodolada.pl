@@ -17,13 +17,16 @@ adm_include_in_theme('/adm-inc/includes/header-customizer.php');
 
 adm_include_in_theme('/adm-inc/includes/post-metadata.php');
 
- adm_include_in_theme('/adm-inc/includes/color-customizer.php');
+adm_include_in_theme('/adm-inc/includes/color-customizer.php');
 
 
 
 if( class_exists('WooCommerce') ){
 	adm_include_in_theme('/adm-inc/woo/menu-primary-icons.php');
 	adm_include_in_theme('/adm-inc/woo/customers-list.php');
+    adm_include_in_theme('/adm-inc/woo/dashboard-cancel-order.php');
+    adm_include_in_theme('/adm-inc/woo/dashboard-links.php');
+    
 }
 
  

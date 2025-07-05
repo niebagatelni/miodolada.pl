@@ -33,13 +33,9 @@
 	font-family: 'Roboto';
 }
 
-
-
-#main p{
+p{
 	margin: 0;
 }
-
-
 
 .form-oferta{
 	border: 1px solid #abb8c3;
@@ -193,4 +189,10 @@
     border-bottom: none;
     padding-bottom: 0;
     margin-bottom: 0;
+}
+
+.woocommerce-orders-table__cell woocommerce-orders-table__cell-order-actions{
+    display: grid;
+    justify-content: start;
+    align-items: center;
 }

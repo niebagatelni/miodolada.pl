@@ -2,7 +2,6 @@
 
 // Funkcja pomocnicza do wywołań API MailerLite
 function ml_call_api($url, $type = 'POST', $data = null) {
-    adm_log3("ML wywołany z ". $type .", url: ". $url);
 
     if (!defined('ML_API_KEY')) define('ML_API_KEY', 'dc52e84d9ab80759d811ac3fd3aec497');
     $curl_data = array(
@@ -66,7 +65,7 @@ function ml_add_or_update_subscriber($user_id, $old_user_data = null) {
             'phone' => $user->billing_phone ?? '',
             'state' => $user->billing_state ?? '',
             'zip' => $user->billing_postcode ?? '',
-            'nip' => $user->billing_vat ?? $user->billing_nip ?? '',
+            'nip' => $user->billing_tax_no ?? $user->billing_nip ?? '',
             'zrodlo' => 'miodolada-hurt',
             'miodolada_hurt_role' => isset($user->roles) ? implode(',', $user->roles) : '',
             'woo_id' => $user->ID ?? '',

@@ -86,11 +86,12 @@ body{
 
 a.button,
 .wp-block-button,
-.wp-element-button{
+.wp-element-button,
+input[type="submit"]{
 	border: 1px solid #c0bcbc;						   
 	border-radius: 4px;
     line-height: 1;
-    padding: 0.4em 1em;
+    padding: 0.6em 1em;
 }
 
 .hentry .entry-content a{
@@ -328,4 +329,12 @@ footer.site-footer .widget_layered_nav_filters ul li,
     margin		: 1em auto;
     font-weight	: bold;
     font-size	: 110%;
+}
+
+
+.adm-info{
+    background-color: #efefef38;
+    margin-bottom: 3em;
+    padding: 1em;
+    box-shadow: 0px 0px 2px #929292;
 }

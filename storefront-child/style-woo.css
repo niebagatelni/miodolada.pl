@@ -20,6 +20,10 @@
 
 
 
+
+
+/*    My Account - strona Moje Konto    */
+
 form.woocommerce-ResetPassword,
 form.lost_reset_password{
     display : grid;
@@ -31,3 +35,26 @@ form.lost_reset_password{
     margin-top      : 5em;
     margin-bottom   : 5em;
 } 
+
+
+
+.woocommerce-MyAccount-content .woocommerce-EditAccountForm > *:not(.clear) 
+.woocommerce-MyAccount-content .woocommerce-EditAccountForm > p,
+.woocommerce-MyAccount-content .woocommerce-EditAccountForm .woocommerce-form-row {
+    margin-top  : 1em;
+}
+
+.woocommerce-MyAccount-content .woocommerce-EditAccountForm em {
+    font-size: 90%;
+}
+
+.woocommerce-MyAccount-content .woocommerce-EditAccountForm  fieldset {
+    background-color    : #fbfbfb;
+}
+
+.woocommerce-MyAccount-content .woocommerce-EditAccountForm #adm--lost-pasword-link {
+    margin-bottom       : 2em;
+    background-color    : #fbfbfb;
+    padding             : 1em;
+}
+

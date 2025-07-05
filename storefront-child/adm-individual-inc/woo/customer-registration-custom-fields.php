@@ -1,12 +1,36 @@
 <?php
-// Hello World
 
-// Wyłącz domyślny e-mail WooCommerce o utworzeniu konta TYLKO podczas rejestracji przez ten shortcode
-add_filter('woocommerce_email_enabled_customer_new_account', function($enabled) {
-    if (isset($_POST['custom_registration_form_submitted'])) {
-        return false;
+// Walidacja NIP - przenieś tę funkcję globalnie
+if (!function_exists('waliduj_nip')){
+    function waliduj_nip($nip) {
+        $nip = preg_replace('/[^0-9]/', '', $nip);
+        if (strlen($nip) != 10) {
+            return false;
+        }
+        $wagi = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+        $suma = 0;
+        for ($i = 0; $i < 9; $i++) {
+            $suma += $nip[$i] * $wagi[$i];
+        }
+        $suma %= 11;
+        return $suma == $nip[9];
     }
-    return $enabled;
+}
+
+
+
+// // Wyłącz domyślny e-mail WooCommerce o utworzeniu konta TYLKO podczas rejestracji przez ten shortcode
+// add_filter('woocommerce_email_enabled_customer_new_account', function($enabled) {
+//     if (isset($_POST['custom_registration_form_submitted'])) {
+//         return false;
+//     }
+//     return $enabled;
+// });
+
+
+// Wyłącz domyślny e-mail WooCommerce o utworzeniu konta
+add_filter('woocommerce_email_enabled_customer_new_account', function($enabled) {
+    return false;
 });
 
 
@@ -18,7 +42,7 @@ $adm_registration_fields = [
         'label' => __( 'Imię', 'storefront-child' ),
         'required' => true,
     ],
-    'billing_vat' => [
+    'billing_tax_no' => [
         'type' => 'text',
         'label' => __( 'NIP', 'storefront-child' ),
         'required' => true,
@@ -41,19 +65,61 @@ $adm_registration_fields = [
 
 ];
 
+/*
+// Dodaję dodatkowe pola billingowe do WooCommerce (dla Fakturowni)
+add_filter('woocommerce_billing_fields', function($fields) {
+    $fields['_billing_company_name'] = array(
+        'label'       => __('Nazwa firmy', 'storefront-child'),
+        'placeholder' => _x('Nazwa firmy', 'placeholder', 'storefront-child'),
+        'required'    => false,
+        'class'       => array('form-row-wide'),
+        'priority'    => 21,
+    );
+    $fields['_billing_tax_no'] = array(
+        'label'       => __('NIP', 'storefront-child'),
+        'placeholder' => _x('NIP', 'placeholder', 'storefront-child'),
+        'required'    => false,
+        'class'       => array('form-row-wide'),
+        'priority'    => 22,
+    );
+    $fields['_billing_company_address'] = array(
+        'label'       => __('Ulica firmy', 'storefront-child'),
+        'placeholder' => _x('Ulica firmy', 'placeholder', 'storefront-child'),
+        'required'    => false,
+        'class'       => array('form-row-wide'),
+        'priority'    => 23,
+    );
+    $fields['_billing_company_postcode'] = array(
+        'label'       => __('Kod pocztowy firmy', 'storefront-child'),
+        'placeholder' => _x('Kod pocztowy firmy', 'placeholder', 'storefront-child'),
+        'required'    => false,
+        'class'       => array('form-row-wide'),
+        'priority'    => 24,
+    );
+    $fields['_billing_company_city'] = array(
+        'label'       => __('Miasto firmy', 'storefront-child'),
+        'placeholder' => _x('Miasto firmy', 'placeholder', 'storefront-child'),
+        'required'    => false,
+        'class'       => array('form-row-wide'),
+        'priority'    => 25,
+    );
+    return $fields;
+});
+*/
+
+
 // Formularz WooCommerce (na stronie MojeKonto)
 function dodaj_pola_rejestracji_woocommerce() {
     global $adm_registration_fields;
+
     woocommerce_form_field( 'confirm_password', [
         'type'        => 'password',
         'label'       => __( 'Potwierdź hasło', 'storefront-child' ),
         'required'    => true,
-        'class'       => ['woocommerce-form-row--wide', 'form-row-wide'],
-        'label_class' => ['woocommerce-form__label'],
     ], isset( $_POST['confirm_password'] ) ? wc_clean( $_POST['confirm_password'] ) : '' );
- 
+
     foreach ($adm_registration_fields as $key => $field) {
-        if ($key === 'email') continue; // WooCommerce samo generuje pole email
+        if ($key === 'email') continue;
         $label = $field['label'];
         if (empty($field['required'])) {
             $label .= ' <span class="label-note">(nieobowiązkowo)</span>';
@@ -74,43 +140,27 @@ function dodaj_pola_rejestracji_woocommerce() {
 add_action('woocommerce_register_form', 'dodaj_pola_rejestracji_woocommerce');
 
 
-
-// // Walidacja NIP - przenieś tę funkcję globalnie
-function waliduj_nip($nip) {
-    $nip = preg_replace('/[^0-9]/', '', $nip);
-    if (strlen($nip) != 10) {
-        return false;
-    }
-    $wagi = [6, 5, 7, 2, 3, 4, 5, 6, 7];
-    $suma = 0;
-    for ($i = 0; $i < 9; $i++) {
-        $suma += $nip[$i] * $wagi[$i];
-    }
-    $suma %= 11;
-    return $suma == $nip[9];
-}
-
 function walidacja_pol_formularza_rejestracji($errors, $username, $email) {
 
     $is_shortcode = !isset($_POST['password']) && isset($_POST['custom_registration_form_submitted']);
 
     if (!$is_shortcode) {
-        if (empty($_POST['password'])) {
-            $errors->add('password_error', __('Hasło jest wymagane.', 'storefront-child'));
-        }
-        if (isset($_POST['password'], $_POST['confirm_password']) && $_POST['password'] !== $_POST['confirm_password']) {
-            $errors->add('password_mismatch', __('Hasła nie są takie same.', 'storefront-child'));
-        }
+            if (empty($_POST['password'])) {
+                $errors->add('password_error', __('Hasło jest wymagane.', 'storefront-child'));
+            }
+            if (isset($_POST['password'], $_POST['confirm_password']) && $_POST['password'] !== $_POST['confirm_password']) {
+                $errors->add('password_mismatch', __('Hasła nie są takie same.', 'storefront-child'));
+            }
     }
 
     if (empty($_POST['first_name'])) {
         $errors->add('first_name_error', __('Imię jest wymagane.', 'storefront-child'));
     }
 
-    if (empty($_POST['billing_vat'])) {
-        $errors->add('billing_vat_error', __('Numer NIP jest wymagany.', 'storefront-child'));
-    } elseif (!waliduj_nip($_POST['billing_vat'])) {
-        $errors->add('billing_vat_error', __('Podany numer NIP jest nieprawidłowy.', 'storefront-child'));
+    if (empty($_POST['billing_tax_no'])) {
+        $errors->add('billing_tax_no_error', __('Numer NIP jest wymagany.', 'storefront-child'));
+    } elseif (!waliduj_nip($_POST['billing_tax_no'])) {
+        $errors->add('billing_tax_no_error', __('Podany numer NIP jest nieprawidłowy.', 'storefront-child'));
     }
 
     if (empty($_POST['email'])) {
@@ -129,9 +179,9 @@ add_filter('woocommerce_registration_errors', 'walidacja_pol_formularza_rejestra
 
 // Zapis danych klienta po rejestracji
 function zapisz_dane_rejestracji_i_przypisz_role($customer_id) {
+    global $adm_registration_fields;
     wp_update_user(['ID' => $customer_id, 'role' => 'zainteresowany_oferta']);
     
-    global $adm_registration_fields;
     $fields = array_keys($adm_registration_fields);
 
     foreach ($fields as $field) {
@@ -141,6 +191,7 @@ function zapisz_dane_rejestracji_i_przypisz_role($customer_id) {
     }
     update_user_meta($customer_id, "billing_first_name", sanitize_text_field($_POST["first_name"] ?? ''));
 
+    // Ustawianie hasła
     if (!empty($_POST['password'])) {
         wp_set_password(sanitize_text_field($_POST['password']), $customer_id);
     }
@@ -152,57 +203,42 @@ add_action('woocommerce_created_customer', 'zapisz_dane_rejestracji_i_przypisz_r
 // Przekierowanie po rejestracji
 function przekieruj_po_rejestracji($redirect_to, $user) {
     if (in_array('zainteresowany_oferta', (array) $user->roles)) {
-        return home_url('/dziękujemy-za-rejestrację/');
-    
+        return home_url();
     }
     return $redirect_to;
 }
 
-add_filter('woocommerce_registration_redirect', 'przekieruj_po_rejestracji', 10, 2);
+add_filter('woocommerce_registration_redirect', 'przekieruj_po_rejestracji', 100);
 */
 
 
 
+// Inline JS do automatycznego wypełniania formularza (np. do testów)
 function dodaj_inline_js_do_rejestracji() {
+    if( is_front_page() || is_home() || ( is_account_page() && !is_user_logged_in() ) ){
         ?>
         <script>
         document.addEventListener("DOMContentLoaded", function () {
+            const pola = {
+                '#first_name': "Aaaaaa",
+                '#billing_phone': "654654654",
+                '#billing_tax_no': "9462600874",
+                '#company_additional_info': "tam taram tamtam atmtaramatam atmraratm a",
+                '#reg_password': "qweqwe",
+                '#confirm_password': "qweqwe"
+            };
 
-
-        var pole = "#first_name";
-        if( document.querySelector(pole) ){
-            document.querySelector(pole).value="Aaaaaa";
-        }
-
-        var pole = "#billing_phone";
-        if( document.querySelector(pole) ){
-            document.querySelector(pole).value="654654654";
-        }
-
-        var pole = "#billing_vat";
-        if( document.querySelector(pole) ){
-            document.querySelector(pole).value="9462600874";
-        }
-
-        var pole = "#company_additional_info";
-        if( document.querySelector(pole) ){
-            document.querySelector(pole).value = "tam taram tamtam atmtaramatam atmraratm a";
-        }
-
-        var pole = "#reg_password";
-        if( document.querySelector(pole) ){
-            document.querySelector(pole).value = "qweqwe";
-        }
-        var pole = "#confirm_password";
-        if( document.querySelector(pole) ){
-            document.querySelector(pole).value = "qweqwe";
-        }
-
+            Object.entries(pola).forEach(([selector, value]) => {
+                const el = document.querySelector(selector);
+                if (el) el.value = value;
+            });
         });
         </script>
         <?php
+    }
 }
 add_action('wp_footer', 'dodaj_inline_js_do_rejestracji');
+
 
 
 
@@ -288,7 +324,7 @@ add_shortcode('adm_registration_form_zainteresowany_oferta', function() {
         }
         ?>
         <input type="hidden" name="custom_registration_form_submitted" value="1">
-        <p class="form-footer">Nikomu nie udostępniamy Twoim danych. Zbieramy je tylko po to, by złożyć Ci najsłodszą pod słońcem ofertę hurtową. </p>
+        <p class="form-footer">Twoje dane zbieramy tylko po to, by złożyć Ci najsłodszą pod słońcem ofertę hurtową.</p>
         <p>
             <button type="submit">Zarejestruj</button>
         </p>
@@ -296,7 +332,6 @@ add_shortcode('adm_registration_form_zainteresowany_oferta', function() {
     <?php
     return ob_get_clean();
 });
-
 
 
 
@@ -312,7 +347,7 @@ function wyswietl_pola_profilu_uzytkownika($user) {
 
     // Dodatkowe informacje o firmie (nie będące standardowymi polami billingowymi WooCommerce)
     $extra_fields = [
-        'billing_vat'          => 'NIP',
+        'billing_tax_no'          => 'NIP',
         'company_additional_info' => 'Dodatkowe informacje o firmie',
     ];
 
@@ -335,6 +370,12 @@ function wyswietl_pola_profilu_uzytkownika($user) {
     echo '</table>';
 }
 
+// Dodaj pole do panelu admina (edycja zamówienia)
+// add_filter('woocommerce_admin_billing_fields', function ($fields) {
+//     $fields['billing_tax_no'] = __('NIP', 'woocommerce');
+//     return $fields;
+// });
+
 // Zapisywanie danych z profilu użytkownika
 function zapisz_pola_profilu_uzytkownika($user_id) {
     if (!current_user_can('edit_user', $user_id)) {
@@ -343,7 +384,7 @@ function zapisz_pola_profilu_uzytkownika($user_id) {
 
     // Zapisujemy tylko niestandardowe pola, które nie są billingowymi WooCommerce
     $fields = [
-        'billing_vat',
+        'billing_tax_no',
         'company_additional_info',
     ];
 
@@ -359,42 +400,6 @@ function zapisz_pola_profilu_uzytkownika($user_id) {
 
 
 
-
-// Filtracja NIPu pól billingowych (dla pola 'billing_vat')
-
-// Dodanie pola NIP (billing_vat) do danych rozliczeniowych WooCommerce (do billing fields)
-function dodaj_pole_billing_vat_do_danych_rozliczeniowych( $fields ) {
-    $fields['billing_vat'] = array(
-        'label'       => __('NIP', 'storefront-child'),
-        'placeholder' => _x('NIP', 'placeholder', 'storefront-child'),
-        'required'    => true, // wymagane przy zamówieniu
-        'class'       => array('form-row-wide'),
-        'clear'       => true,
-        'priority'    => 120,
-        'type'        => 'text',
-    );
-    return $fields;
-}
-add_filter('woocommerce_billing_fields', 'dodaj_pole_billing_vat_do_danych_rozliczeniowych');
-
-
-// Walidacja NIP przy zamówieniu (checkout)
-add_action('woocommerce_checkout_process', function() {
-    if (empty($_POST['billing_vat'])) {
-        wc_add_notice(__('Numer NIP jest wymagany.', 'storefront-child'), 'error');
-    } elseif (!waliduj_nip($_POST['billing_vat'])) {
-        wc_add_notice(__('Podany numer NIP jest nieprawidłowy.', 'storefront-child'), 'error');
-    }
-});
-
-
-// Usunięcie pola NIP z pól wysyłkowych (z shipping fields)
-add_filter('woocommerce_shipping_fields', function($fields) {
-    if (isset($fields['billing_vat'])) {
-        unset($fields['billing_vat']);
-    }
-    return $fields;
-});
 
 
 
@@ -433,18 +438,16 @@ add_action('woocommerce_save_account_details', function($user_id) {
 // --- Wyświetlanie dodatkowych informacji na dashboardzie "Moje konto" ---
 add_action('woocommerce_account_dashboard', function() {
     $user_id = get_current_user_id();
-    $nip = get_user_meta($user_id, 'billing_vat', true);
     $info = get_user_meta($user_id, 'company_additional_info', true);
-    if (!empty($nip) || !empty($info)) {
+    if (!empty($info)) {
         echo '<h3>' . __('Dodatkowe informacje o firmie', 'storefront-child') . '</h3>';
         echo '<table class="woocommerce-table shop_table">';
-        if (!empty($nip)) {
-            echo '<tr><th>' . __('NIP', 'storefront-child') . '</th><td>' . esc_html($nip) . '</td></tr>';
-        }
         if (!empty($info)) {
             echo '<tr><th>' . __('Dodatkowe informacje', 'storefront-child') . '</th><td>' . esc_html($info) . '</td></tr>';
         }
         echo '</table>';
     }
 });
+
+
 

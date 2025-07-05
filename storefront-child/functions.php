@@ -16,9 +16,9 @@ define_const('ADM_THEME_URI', get_stylesheet_directory_uri()."/");
 
 
 function adm_include_in_theme($rr){
-	if (file_exists(ADM_THEME_DIR.$rr)) {
-	    require_once ADM_THEME_DIR.$rr;
-	}
+    if (file_exists(ADM_THEME_DIR.$rr)) {
+        require_once ADM_THEME_DIR.$rr;
+    }
 }
 
 
@@ -103,31 +103,31 @@ add_action('wp_enqueue_scripts', function() {
 
 $rr = get_stylesheet_directory() . '/adm-inc/includes.php';
 if (file_exists($rr)) {
-	require_once $rr;
+    require_once $rr;
 }
 
 
 
 $rr = get_stylesheet_directory() . '/adm-individual-inc/includes.php';
 if (file_exists($rr)) {
-	require_once $rr;
+    require_once $rr;
 }
 
 
 // Czy treści blogowe ale nie na głównej stronie
 function adm_is_blog_context() {
-	return ( is_home() || is_archive() || is_category() || is_tag() || is_singular('post') ) && ! is_front_page();
+    return ( is_home() || is_archive() || is_category() || is_tag() || is_singular('post') ) && ! is_front_page();
 }
 
 
-
+/*
 
 // Załaduj style motywu potomnego
 add_action('wp_enqueue_scripts', function () {
     wp_enqueue_style(
         'adm--storefront-child-style',
         get_stylesheet_uri(),
-        ['adm--storefront-style'],
+        ['adm--storefront-style', 'storefront-woocommerce-brands-style-css'],
         file_exists(get_stylesheet_directory() . '/style.css') ? filemtime(get_stylesheet_directory() . '/style.css') : null,
         'all'
     );
@@ -155,4 +155,202 @@ add_action('wp_enqueue_scripts', function () {
     }
 }, 100);
 
+*/
 
+// Załaduj style motywu potomnego
+add_action('wp_enqueue_scripts', function () {
+    // Najpierw główny styl
+    wp_enqueue_style(
+        'storefront-child-style',
+        get_stylesheet_uri(),
+        ['storefront-style'], // Standardowa nazwa handle dla Storefront
+        file_exists(get_stylesheet_directory() . '/style.css') ? filemtime(get_stylesheet_directory() . '/style.css') : '1.0.0'
+    );
+
+    // WooCommerce style
+    $woo_style_path = get_stylesheet_directory() . '/style-woo.css';
+    if (class_exists('WooCommerce') && file_exists($woo_style_path)) {
+        wp_enqueue_style(
+            'storefront-child-woocommerce',
+            get_stylesheet_directory_uri() . '/style-woo.css',
+            ['storefront-child-style'],
+            filemtime($woo_style_path)
+        );
+    }
+
+    // Individual style
+    $individual_style_path = get_stylesheet_directory() . '/style-individual.css';
+    if (file_exists($individual_style_path)) {
+        wp_enqueue_style(
+            'storefront-child-individual',
+            get_stylesheet_directory_uri() . '/style-individual.css',
+            ['storefront-child-style'],
+            filemtime($individual_style_path)
+        );
+    }
+
+/*
+    // checkout style
+    $checkout_style_path = get_stylesheet_directory() . '/checkout.css';
+    if (file_exists($checkout_style_path)) {
+        wp_enqueue_style(
+            'storefront-child-checkout',
+            get_stylesheet_directory_uri() . '/checkout.css',
+            ['storefront-child-style'],
+            filemtime($checkout_style_path)
+        );
+    }
+*/
+
+}, 100); // Wcześniejszy priorytet
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Dodaj metabox na główną kokpitu admina
+add_action('wp_dashboard_setup', function() {
+    wp_add_dashboard_widget(
+        'user_szczegoly_widget',
+        'Szczegóły user',
+        'wyswietl_szczegoly_user_dashboard'
+    );
+});
+
+function wyswietl_szczegoly_user_dashboard() {
+
+
+    $all_meta = get_user_meta(106);
+    foreach ($all_meta as $key => $values) {
+        echo $key . ' => ' . implode(', ', $values) . "<BR>";
+    }
+
+
+}
+
+
+
+
+
+// Dodaj metabox z zamówieniami na stronę główną kokpitu admina
+add_action('wp_dashboard_setup', function() {
+    wp_add_dashboard_widget(
+        'zamowienia_szczegoly_widget',
+        'Szczegóły zamówień #618, 619, 632, 633',
+        'wyswietl_szczegoly_zamowien_dashboard'
+    );
+});
+
+function wyswietl_szczegoly_zamowien_dashboard() {
+    if (!current_user_can('manage_woocommerce')) {
+        echo 'Brak dostępu.';
+        return;
+    }
+
+    $order_ids = [618, 619, 632, 633];
+
+    echo '<div style="max-height: 500px; overflow-y: auto;">';
+
+    foreach ($order_ids as $order_id) {
+        $order = wc_get_order($order_id);
+        echo "<br><br><HR><HR>";
+
+        echo "<h3>#{$order->get_id()} (Status: {$order->get_status()})</h3>";
+
+        echo '<strong>Klient:</strong> ' . esc_html($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()) . '<br>';
+        echo '<strong>Klient ID:</strong> ' . $order->get_customer_id() . '<br>';
+        echo '<strong>Email:</strong> ' . esc_html($order->get_billing_email()) . '<br>';
+        echo '<strong>Telefon:</strong> ' . esc_html($order->get_billing_phone()) . '<br>';
+        echo '<strong>Data zamówienia:</strong> ' . esc_html($order->get_date_created()->date('Y-m-d H:i:s')) . '<br>';
+
+        echo "<HR>";
+        foreach ($order->get_meta_data() as $meta) {
+            echo $meta->key . ': ' . $meta->value . "<br>";
+        }
+        echo "<HR>";
+
+
+        echo '$order->get_id() : ' . $order->get_id() . "<br>";
+        echo '$order->get_status() : ' . $order->get_status() . "<br>";
+        echo '$order->get_date_created() : ' . $order->get_date_created()->date('Y-m-d H:i:s') . "<br>";
+        echo '$order->get_date_modified() : ' . $order->get_date_modified()->date('Y-m-d H:i:s') . "<br>";
+        echo '$order->get_total() : ' . $order->get_total() . "<br>";
+        echo '$order->get_total_tax() : ' . $order->get_total_tax() . "<br>";
+        echo '$order->get_subtotal() : ' . $order->get_subtotal() . "<br>";
+        echo '$order->get_payment_method() : ' . $order->get_payment_method() . "<br>";
+        echo '$order->get_payment_method_title() : ' . $order->get_payment_method_title() . "<br>";
+        echo '$order->get_shipping_method() : ' . $order->get_shipping_method() . "<br>";
+        echo '$order->get_customer_id() : ' . $order->get_customer_id() . "<br>";
+        echo '$order->get_billing_first_name() : ' . $order->get_billing_first_name() . "<br>";
+        echo '$order->get_billing_last_name() : ' . $order->get_billing_last_name() . "<br>";
+        echo '$order->get_billing_email() : ' . $order->get_billing_email() . "<br>";
+        echo '$order->get_billing_phone() : ' . $order->get_billing_phone() . "<br>";
+        echo '$order->get_billing_address_1() : ' . $order->get_billing_address_1() . "<br>";
+        echo '$order->get_billing_address_2() : ' . $order->get_billing_address_2() . "<br>";
+        echo '$order->get_billing_city() : ' . $order->get_billing_city() . "<br>";
+        echo '$order->get_billing_postcode() : ' . $order->get_billing_postcode() . "<br>";
+        echo '$order->get_billing_country() : ' . $order->get_billing_country() . "<br>";
+        echo '$order->get_shipping_first_name() : ' . $order->get_shipping_first_name() . "<br>";
+        echo '$order->get_shipping_last_name() : ' . $order->get_shipping_last_name() . "<br>";
+        echo '$order->get_shipping_address_1() : ' . $order->get_shipping_address_1() . "<br>";
+        echo '$order->get_shipping_address_2() : ' . $order->get_shipping_address_2() . "<br>";
+        echo '$order->get_shipping_city() : ' . $order->get_shipping_city() . "<br>";
+        echo '$order->get_shipping_postcode() : ' . $order->get_shipping_postcode() . "<br>";
+        echo '$order->get_shipping_country() : ' . $order->get_shipping_country() . "<br>";
+        echo '$order->get_coupon_codes() : ' . implode(', ', $order->get_coupon_codes()) . "<br>";
+        echo '$order->get_items() : ';
+        // Tu trzeba iterować po elementach, bo to tablica obiektów
+        foreach ( $order->get_items() as $item_id => $item ) {
+            echo "<br>  Produkt: " . $item->get_name() . ", ilość: " . $item->get_quantity() . ", cena: " . $item->get_total();
+        }
+        echo "<br>";
+        echo '$order->get_customer_note() : ' . $order->get_customer_note() . "<br>";
+        echo '$order->get_date_paid() : ';
+        echo $order->get_date_paid() ? $order->get_date_paid()->date('Y-m-d H:i:s') : 'brak' . "<br>";
+        echo '$order->get_date_completed() : ';
+        echo $order->get_date_completed() ? $order->get_date_completed()->date('Y-m-d H:i:s') : 'brak' . "<br>";
+
+
+/*
+        if ($order->get_shipping_address_1()) {
+            echo '<strong>Adres wysyłki:</strong><br>';
+            echo esc_html($order->get_shipping_address_1()) . '<br>';
+            if ($order->get_shipping_address_2()) echo esc_html($order->get_shipping_address_2()) . '<br>';
+            echo esc_html($order->get_shipping_city()) . ', ' . esc_html($order->get_shipping_postcode()) . '<br>';
+            echo esc_html($order->get_shipping_country()) . '<br>';
+        }
+
+        echo '<strong>Pozycje zamówienia:</strong><ul>';
+        foreach ($order->get_items() as $item) {
+            $product_name = $item->get_name();
+            $qty = $item->get_quantity();
+            $total = wc_price($item->get_total());
+            echo "<li>{$product_name} x {$qty} — {$total}</li>";
+        }
+        echo '</ul>';
+
+        echo '<strong>Razem:</strong> ' . $order->get_formatted_order_total() . '<hr>';
+  */
+  
+        }
+
+    echo '</div>';
+}

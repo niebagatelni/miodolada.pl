@@ -124,7 +124,7 @@ function adm_wpforms_create_customer($fields, $entry, $form_data, $entry_id) {
     update_user_meta($user_id, 'billing_email', $data['email'] ?? '');
     update_user_meta($user_id, 'billing_phone', $data['fields']['phone'] ?? '');
     update_user_meta($user_id, 'billing_company', $data['fields']['company'] ?? '');
-    update_user_meta($user_id, 'billing_vat', $data['fields']['nip'] ?? '');
+    update_user_meta($user_id, 'billing_tax_no', $data['fields']['nip'] ?? '');
     update_user_meta($user_id, 'customer_note', $data['fields']['customer_note'] ?? '');
     update_user_meta($user_id, 'first_name', $data['name'] ?? '');
     update_user_meta($user_id, 'last_name', $data['fields']['last_name'] ?? 'brakkk');
