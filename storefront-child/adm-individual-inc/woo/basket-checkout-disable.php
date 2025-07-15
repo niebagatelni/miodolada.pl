@@ -5,6 +5,7 @@
  
 
 // Sprawdzenie dostępu klienta
+if(!function_exists('czy_klient_moze_kupowac')){
 function czy_klient_moze_kupowac() {
     $user = wp_get_current_user();
     if (!$user || empty($user->roles)) {
@@ -12,7 +13,7 @@ function czy_klient_moze_kupowac() {
         return false;
     }
     return !in_array('zainteresowany_oferta', (array) $user->roles);
-}
+}}
 
 function login_register_wp_buttons() {
     $my_account_url= get_permalink( wc_get_page_id( 'myaccount' ) );
@@ -209,7 +210,7 @@ add_filter('woocommerce_get_price_html', function($price, $product) {
         return '<span class="offer-pending-price">Oferta w przygotowaniu</span>';
     }
     return $price;
-}, 10, 2);
+}, 15, 2);
 
 
 // 9. BLOKOWANIE API/REST (dla zewnętrznych aplikacji)

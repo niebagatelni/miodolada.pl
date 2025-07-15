@@ -30,25 +30,38 @@ if( class_exists('WooCommerce') ){
 }
 
  
+// Usuwa sortowanie i zliczenie produktów w sklepie WooCommerce
+function custom_remove_sorting_and_result_count() {
+    remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
+    remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
+    remove_action( 'woocommerce_before_shop_loop', 'storefront_sorting_wrapper', 9 );
+    remove_action( 'woocommerce_before_shop_loop', 'storefront_sorting_wrapper_close', 31 );
+}
+add_action( 'woocommerce_before_main_content', 'custom_remove_sorting_and_result_count' );
+
+
+
 
 /*
 
 Priorytety CSS:
 
-color-set		: 10
-header-layout		: 22
-ustawienia bloga	: 23
-custom-blocks		: 25
+color-set		        : 10
+header-layout		    : 22
+ustawienia bloga	    : 23
+custom-blocks		    : 25
 color-settings-output 	: 100
 
 */
 
 
+/*
 add_action('admin_menu', 'adm_custom_menu');
 function adm_custom_menu()
 {
     add_menu_page('Wzorce', 'Wzorce', 'read', "/wp-admin/edit.php?post_type=wp_block", '', 'dashicons-text', 1);
 }
+*/
 
 
 

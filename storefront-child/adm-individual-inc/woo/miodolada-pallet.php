@@ -252,3 +252,29 @@ add_filter('woocommerce_order_item_display_meta_key', function($display_key, $me
     return $display_key;
 }, 20, 3);
 
+
+
+add_filter('woocommerce_get_price_html', 'pokaz_netto_i_brutto', 10, 2);
+
+function pokaz_netto_i_brutto($price_html, $product) {
+    $netto  = wc_get_price_excluding_tax( $product );
+    $brutto = wc_get_price_including_tax( $product );
+    $waluta = get_woocommerce_currency_symbol();
+
+    $html  = '<span class="price-netto"><span class="price-numbers">' . number_format($netto, 2, ',', ' ') . '</span> ' . $waluta . '</span> (netto)<br>';
+    $html .= '<span class="price-brutto"><span class="price-numbers">' . number_format($brutto, 2, ',', ' ') . '</span> ' . $waluta . '</span> (brutto)';
+
+    // Pobierz ilość sztuk z meta `_mix_max_sum`
+    $ilosc_sztuk = (int) get_post_meta($product->get_id(), '_mix_max_sum', true);
+
+    if ($ilosc_sztuk > 0) {
+        $netto_jednostkowo  = $netto / $ilosc_sztuk;
+        $brutto_jednostkowo = $brutto / $ilosc_sztuk;
+
+        $html .= '<br><span class="price-jednostkowa"><span class="price-numbers">' . number_format($netto_jednostkowo, 2, ',', ' ') . '</span> / ';
+        $html .= '<span class="price-numbers">' . number_format($brutto_jednostkowo, 2, ',', ' ') . '</span> (' . $waluta . ') za 1 but. </span>';
+    }
+
+    return $html;
+}
+

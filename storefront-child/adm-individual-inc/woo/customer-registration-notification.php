@@ -1,6 +1,16 @@
 <?php
 
 
+
+$email_shop         = 'sklep@pachniczowka.pl';
+$email_admin        = 'artur.dlugosz@pachniczowka.pl';
+$email_tech_support = 'artur.dlugosz@pachniczowka.pl';
+
+$email_recipients = [
+    //'sklep@pachniczowka.pl',
+    'arturr.dlugosz+miodolada@gmail.com'
+];
+
 add_filter( 'wp_new_user_notification_email', 'adm__disable_notify_for_new_zainteresowany_oferta', 10, 3 );
 function adm__disable_notify_for_new_zainteresowany_oferta( $email, $user, $blogname ) {
     if ( in_array( 'zainteresowany_oferta', (array) $user->roles ) ) {
@@ -25,14 +35,11 @@ function adm__notify_new_customer($user_id) {
 	$roles_in = array('zainteresowany_oferta');
 	$roles_ex = array('shop_manager', 'administrator');
 
-	$recipients = [
-	    //'sklep@pachniczowka.pl',
-	    'adnauczyciel@gmail.com'
-	];
 
 
-	if (!isset($roles_in) || !isset($roles_ex) || !isset($recipients)) adm_log2("Błędy w rolach i odbiorcach (nie istnieją)");
-	if ( empty($roles_in) || empty($roles_ex) || empty($recipients) ) adm_log2("Błędy w rolach i odbiorcach (są puste)");
+
+	if (!isset($roles_in) || !isset($roles_ex) || !isset($email_recipients)) adm_log2("Błędy w rolach i odbiorcach (nie istnieją)");
+	if ( empty($roles_in) || empty($roles_ex) || empty($email_recipients) ) adm_log2("Błędy w rolach i odbiorcach (są puste)");
 
 
 	$user = get_userdata($user_id);
@@ -55,10 +62,9 @@ function adm__notify_new_customer($user_id) {
 
 	$user_email = (!empty($user->user_email) && filter_var($user->user_email, FILTER_VALIDATE_EMAIL)) 
 					? sanitize_email($user->user_email) 
-					: 'artur.dlugosz@pachniczowka.pl';
+					: $email_admin;
 
 	$user_name = !empty($user->first_name) ? esc_html($user->first_name) : '';
-
 
 	$blogname   = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
 
@@ -81,7 +87,7 @@ function adm__notify_new_customer($user_id) {
 	];
 
 
-	// Gneerowanie linku do zmiany roli
+	// Generowanie linku do zmiany roli
 	$token = wp_generate_password(20, false);
 	$expires = time() + 3 * 24 * 3600; // 3 dni
 	update_user_meta($user_id, '_role_change_token', $token);
@@ -104,7 +110,7 @@ function adm__notify_new_customer($user_id) {
 		'Content-Type: text/html; charset=UTF-8',
 		'Reply-To: ' . $reply_email
 	];
-	foreach ($recipients as $email) {
+	foreach ($email_recipients as $email) {
 		$sent = $mailer->send($email, $subject, $html, $headers);
 		if (!$sent) {
 			adm_log2("Nie udało się wysłać powiadomienia rejestracyjnego:\n - user ID: $user_id\n - email: $email");
@@ -116,14 +122,14 @@ function adm__notify_new_customer($user_id) {
 	
 
 	// ----------------------------------------
-	// Budowa treści maila do klienta
+	// Budowa treści pierwszego maila do klienta
 
-	$reply_email = 'sklep@pachniczowka.pl';
-	$subject = 'Twoje konto zostało utworzone';
+	$reply_email = $email_shop ?? 'sklep@pachniczowka.pl';
+	$subject = 'Twoje konto w hurtowni miodolada.pl';
 	$message_html = '
 		<p>Witaj <strong>' . $user_name. '</strong>,</p>
 		<p>Twoje konto w hurtowni <a href="https://miodolada.pl"><strong>miodolada.pl</strong></a> zostało pomyślnie utworzone.</p>
-		<p>Gdy uporamy się z pracą na pasiece, przygotujemy dla Ciebie ofertę hurtową.<br>Wtedy w hurtowni, po zalogowaniu się, zobaczysz ceny produktów i będzie można dokonać pierwszego zakupu.</p>';
+		<p>Gdy uporamy się z pracą na pasiece, przygotujemy dla Ciebie ofertę hurtową. Zajmie nam to najwyżej 3 dni.<br>Wtedy w hurtowni, po zalogowaniu się, zobaczysz ceny produktów i będzie można dokonać pierwszego zakupu.</p>';
 
 		$message_html .= '<p>Życzymy słodkiego dnia :) </p>';
 
@@ -171,7 +177,7 @@ function adm__notify_customer_role_activated($user_id) {
         : '';
     if (empty($user_email)) return;
     $user_name = !empty($user->first_name) ? esc_html($user->first_name) : '';
-    $reply_email = 'sklep@pachniczowka.pl';
+	$reply_email = $email_shop ?? 'sklep@pachniczowka.pl';
     $subject = 'Twoje konto zostało aktywowane';
     $message_html = '
         <p>Witaj <strong>' . $user_name. '</strong>,</p>

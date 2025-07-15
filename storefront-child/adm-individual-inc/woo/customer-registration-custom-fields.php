@@ -242,13 +242,24 @@ add_action('wp_footer', 'dodaj_inline_js_do_rejestracji');
 
 
 
-// Shortcode: formularz rejestracji z tymi samymi polami co WooCommerce, bez hasła
-add_shortcode('adm_registration_form_zainteresowany_oferta', function() {
+// Shortcode: formularz rejestracji z tymi samymi polami co WooCommerce
+
+add_shortcode('adm_registration_form_zainteresowany_oferta', function($atts = []) {
+        $atts = shortcode_atts([
+            'action' => '',
+        ], $atts);
+
     ob_start();
-    if (is_user_logged_in()) {
-        echo '<p>Jesteś już zalogowany.</p>';
-        return ob_get_clean();
-    }
+    // if (is_user_logged_in()) {
+    //     echo '<p>Jesteś już zalogowany.<br>Kliknij poniżej, aby przejść do sklepu hurtowego.</p>';
+    //     echo'
+    //     <div class="wp-block-buttons is-content-justification-center is-layout-flex wp-container-core-buttons-is-layout-a89b3969 wp-block-buttons-is-layout-flex">
+    //         <div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="/sklep">SKLEP</a></div>
+    //     </div>
+    //     ';
+    //     return ob_get_clean();
+    // }
+        
     if (!empty($_POST['custom_registration_form_submitted'])) {
         global $adm_registration_fields;
         $fields = array_keys($adm_registration_fields);
@@ -286,19 +297,20 @@ add_shortcode('adm_registration_form_zainteresowany_oferta', function() {
 
                 do_action('woocommerce_created_customer', $user_id);
 
-                echo '<p class="adm-success-message" style="text-align: center; color:green;">Sukces! Niebawem wyślemy do Ciebie ofertę hurtową.</p>';
+                echo '<div class="adm-success-message" style="background-color:white; text-align: center; color:green;"><p style=="color:green;">Sukces! <br> Gdy uporamy się z pracą na pasiece, przygotujemy dla Ciebie ofertę.</p><p style="color:green;">Wtedy możesz zalogować się i dokonać zakupu w cenach hurtowych.</p><p style="color:green;">Jeśli masz pytania, dzwoń do Trutnia Adriana pod numer: <a href="tel:511710243">511 710 243</a></p><p style="color:green;">Pozdrawiamy słodko ;)</p></div>';
+ 
                 return ob_get_clean();
             } else {
-                echo '<p class="adm-failure-message" style="color:red;">Błąd rejestracji: ' . esc_html($user_id->get_error_message()) . '</p>';
+                echo '<div class="adm-failure-message" style="background-color:white; text-align: center; color:red;"><p>Błąd rejestracji: ' . esc_html($user_id->get_error_message()) . '</p></div>';
             }
         } else {
             foreach ($errors->get_error_messages() as $error) {
-                echo '<p class="adm-failure-message" style="text-align: center; color:red;">' . esc_html($error) . '</p>';
+                echo '<div class="adm-failure-message" style="background-color:white; text-align: center; color:red;"><p>' . esc_html($error) . '</p></div>';
             }
         }
     }
     ?>
-    <form id="adm--custom-registration-form" method="post" action="#main-zaoferuj">
+    <form id="adm--custom-registration-form" method="post" action="<?php echo esc_attr($atts['action']); ?>">
         <?php
         global $adm_registration_fields;
         foreach ($adm_registration_fields as $key => $field) {

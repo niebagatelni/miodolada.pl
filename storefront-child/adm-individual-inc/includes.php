@@ -7,11 +7,6 @@ $fname_log = "[.]";
 $adm_password_required = false; // Ustaw true jeśli chcesz wymagać hasła
 
 
-
-
-
-
-
  
 function utworz_role_zainteresowany_oferta() {
     if (!get_role('zainteresowany_oferta')) {

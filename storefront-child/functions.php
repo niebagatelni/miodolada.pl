@@ -15,39 +15,22 @@ define_const('ADM_THEME_DIR', get_stylesheet_directory()."/");
 define_const('ADM_THEME_URI', get_stylesheet_directory_uri()."/");
 
 
+$rr = get_stylesheet_directory() . '/adm-inc/includes.php';
+if (file_exists($rr)) {
+    require_once $rr;
+}
+
+$rr = get_stylesheet_directory() . '/adm-individual-inc/includes.php';
+if (file_exists($rr)) {
+    require_once $rr;
+}
+
+
 function adm_include_in_theme($rr){
     if (file_exists(ADM_THEME_DIR.$rr)) {
         require_once ADM_THEME_DIR.$rr;
     }
 }
-
-
-// Remove created by Storefront
-add_action( 'wp', 'ql_remove_credits_storefront' );
-function  ql_remove_credits_storefront() {
-   remove_action( 'storefront_footer', 'storefront_credit', 20 );
-}
-
-
-
-if ( ! function_exists( 'adm__get_wp_error' ) ) {
-    function adm__get_wp_error( $wp_error ) {
-        if ( ! is_wp_error( $wp_error ) ) {
-            return '';
-        }
-
-        $error_msgs = $wp_error->get_error_messages();
-
-        if ( empty( $error_msgs) ) {
-            return 'Nieznany błąd.';
-        }
-
-        return implode( "\n", array_map( function( $msg ) {
-            return 'Błąd: ' . $msg;
-        }, $error_msgs ) );
-    }
-}
-
 
 
 
@@ -90,7 +73,7 @@ add_action('woocommerce_save_account_details', 'adm_user_data_changed_trigger', 
 // Załaduj style motywu nadrzędnego
 add_action('wp_enqueue_scripts', function() {
     wp_enqueue_style(
-        'adm--storefront-style',
+        'storefront-style',
         get_template_directory_uri() . '/style.css',
         [],
         file_exists(get_template_directory() . '/style.css') ? filemtime(get_template_directory() . '/style.css') : null,
@@ -100,24 +83,160 @@ add_action('wp_enqueue_scripts', function() {
 
 
 
+// Załaduj style motywu potomnego
+add_action('wp_enqueue_scripts', function () {
+	
+	// Najpierw usuń automatycznie załadowany styl potomny
+    wp_dequeue_style('storefront-child-style');
+    wp_deregister_style('storefront-child-style');
 
-$rr = get_stylesheet_directory() . '/adm-inc/includes.php';
-if (file_exists($rr)) {
-    require_once $rr;
+        $child_style_name = 'adm--storefront-child';
+	
+    // Child style
+    wp_enqueue_style(
+        $child_style_name,
+        get_stylesheet_uri(),
+        ['storefront-style'], // Standardowa nazwa handle dla Storefront
+        file_exists(get_stylesheet_directory() . '/style.css') ? filemtime(get_stylesheet_directory() . '/style.css') : '1.0.0'
+    );
+
+	
+    // WooCommerce style
+    $woo_style_path = get_stylesheet_directory() . '/style-woo.css';
+    if (class_exists('WooCommerce') && file_exists($woo_style_path)) {
+        wp_enqueue_style(
+            'adm--storefront-child-woocommerce',
+            get_stylesheet_directory_uri() . '/style-woo.css',
+            [$child_style_name],
+            filemtime($woo_style_path)
+        );
+    }
+
+    // Individual style
+    $individual_style_path = get_stylesheet_directory() . '/style-individual.css';
+    if (file_exists($individual_style_path)) {
+        wp_enqueue_style(
+            'adm--storefront-child-individual',
+            get_stylesheet_directory_uri() . '/style-individual.css',
+            [$child_style_name],
+            filemtime($individual_style_path)
+        );
+    }
+
+
+/*
+    // checkout style
+    $checkout_style_path = get_stylesheet_directory() . '/checkout.css';
+    if (file_exists($checkout_style_path)) {
+        wp_enqueue_style(
+            'storefront-child-checkout',
+            get_stylesheet_directory_uri() . '/checkout.css',
+            ['storefront-child-style'],
+            filemtime($checkout_style_path)
+        );
+    }
+*/
+
+}, 100);
+
+
+
+
+
+
+
+
+
+// -------------------------------------------------------------------
+// ---------------   FUNKCJE   ---------------------------------------
+
+
+
+
+
+// Sprawdzenie dostępu klienta
+if(!function_exists('czy_klient_moze_kupowac')){
+    function czy_klient_moze_kupowac() {
+        $user = wp_get_current_user();
+        if (!$user || empty($user->roles)) {
+            if (function_exists('adm_log3')) adm_log3('Brak ról lub obiektu użytkownika w czy_klient_moze_kupowac()');
+            return false;
+        }
+        return !in_array('zainteresowany_oferta', (array) $user->roles);
+    }}
+    
+    
+
+
+// Remove created by Storefront
+add_action( 'wp', 'ql_remove_credits_storefront' );
+function  ql_remove_credits_storefront() {
+   remove_action( 'storefront_footer', 'storefront_credit', 20 );
 }
 
 
 
-$rr = get_stylesheet_directory() . '/adm-individual-inc/includes.php';
-if (file_exists($rr)) {
-    require_once $rr;
+if ( ! function_exists( 'adm__get_wp_error' ) ) {
+    function adm__get_wp_error( $wp_error ) {
+        if ( ! is_wp_error( $wp_error ) ) {
+            return '';
+        }
+
+        $error_msgs = $wp_error->get_error_messages();
+
+        if ( empty( $error_msgs) ) {
+            return 'Nieznany błąd.';
+        }
+
+        return implode( "\n", array_map( function( $msg ) {
+            return 'Błąd: ' . $msg;
+        }, $error_msgs ) );
+    }
 }
+
+
+
+
 
 
 // Czy treści blogowe ale nie na głównej stronie
 function adm_is_blog_context() {
     return ( is_home() || is_archive() || is_category() || is_tag() || is_singular('post') ) && ! is_front_page();
 }
+
+
+
+// Ukrywaj co trzeba zależnie czy zalogowany
+if(!function_exists('czy_zalogowany_klient_hurtowy')){
+function czy_zalogowany_klient_hurtowy() {
+    if (is_user_logged_in()) {
+        $user = wp_get_current_user();
+        if (in_array('klient_hurtowy', $user->roles)) {
+            return true;
+        }
+    }
+    return false;
+}}
+
+
+function widocznosc_dla_hurtowego() {
+    if( czy_zalogowany_klient_hurtowy() ){
+        echo '<style>.klient-hurtowy-logged { display: block !important; } .klient-hurtowy-not-logged { display: none !important; }</style>';
+    } else {
+        echo '<style>.klient-hurtowy-logged { display: none !important; } .klient-hurtowy-not-logged { display: block !important; }</style>';
+    }
+}
+add_action('wp_head', 'widocznosc_dla_hurtowego');
+
+
+
+add_action('wp_head', function(){
+echo'
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chela+One&family=DynaPuff:wght@400..700&family=Gabarito:wght@400..900&family=Heebo:wght@100..900&family=Mogra&family=Rubik+Spray+Paint&family=Rum+Raisin&display=swap" rel="stylesheet">
+';
+});
 
 
 /*
@@ -157,52 +276,8 @@ add_action('wp_enqueue_scripts', function () {
 
 */
 
-// Załaduj style motywu potomnego
-add_action('wp_enqueue_scripts', function () {
-    // Najpierw główny styl
-    wp_enqueue_style(
-        'storefront-child-style',
-        get_stylesheet_uri(),
-        ['storefront-style'], // Standardowa nazwa handle dla Storefront
-        file_exists(get_stylesheet_directory() . '/style.css') ? filemtime(get_stylesheet_directory() . '/style.css') : '1.0.0'
-    );
 
-    // WooCommerce style
-    $woo_style_path = get_stylesheet_directory() . '/style-woo.css';
-    if (class_exists('WooCommerce') && file_exists($woo_style_path)) {
-        wp_enqueue_style(
-            'storefront-child-woocommerce',
-            get_stylesheet_directory_uri() . '/style-woo.css',
-            ['storefront-child-style'],
-            filemtime($woo_style_path)
-        );
-    }
 
-    // Individual style
-    $individual_style_path = get_stylesheet_directory() . '/style-individual.css';
-    if (file_exists($individual_style_path)) {
-        wp_enqueue_style(
-            'storefront-child-individual',
-            get_stylesheet_directory_uri() . '/style-individual.css',
-            ['storefront-child-style'],
-            filemtime($individual_style_path)
-        );
-    }
-
-/*
-    // checkout style
-    $checkout_style_path = get_stylesheet_directory() . '/checkout.css';
-    if (file_exists($checkout_style_path)) {
-        wp_enqueue_style(
-            'storefront-child-checkout',
-            get_stylesheet_directory_uri() . '/checkout.css',
-            ['storefront-child-style'],
-            filemtime($checkout_style_path)
-        );
-    }
-*/
-
-}, 100); // Wcześniejszy priorytet
 
 
 
@@ -354,3 +429,5 @@ function wyswietl_szczegoly_zamowien_dashboard() {
 
     echo '</div>';
 }
+
+
